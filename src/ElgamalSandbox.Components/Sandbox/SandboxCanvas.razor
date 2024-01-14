@@ -1,0 +1,40 @@
+﻿@using Microsoft.JSInterop
+@using System.Net.Http.Json
+@using System.Text.Json.Nodes
+@using ElgamalSandbox.Components.Extensions
+@using System.Diagnostics
+@inject IJSRuntime JS
+
+<button onclick="@GenerateAsync">Generate</button>
+<button onclick="@SaveAsync">Save</button>
+<div id="blocklyDiv" style="height: 100%; width: 100%;"></div>
+
+@code {
+    private IJSObjectReference _workspace;
+    private dynamic _module;
+    [Parameter] public JsonObject ToolBox { get; set; }
+
+    /// <inheritdoc />
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _module = await JS.Import<SandboxCanvas>("js/index.bundle.js");
+
+            _workspace = await _module.init<IJSObjectReference>(ToolBox);
+        }
+    }
+
+
+    private async Task GenerateAsync()
+    {
+        string code = await _module.generate<string>(_workspace);
+        Console.WriteLine(code);
+    }
+
+    private async Task SaveAsync()
+    {
+        string code = await _module.save<string>(_workspace);
+        Console.WriteLine(code);
+    }
+}

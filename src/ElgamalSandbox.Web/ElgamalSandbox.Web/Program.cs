@@ -3,12 +3,11 @@ using ElgamalSandbox.Core.Abstractions;
 using ElgamalSandbox.Core.Entities;
 using ElgamalSandbox.Data.Postgres;
 using ElgamalSandbox.Web.Authorization;
-using ElgamalSandbox.Web.Client.Pages;
 using ElgamalSandbox.Web.Components;
 using ElgamalSandbox.Web.Components.Account;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Plk.Blazor.DragDrop;
+using MudBlazor.Services;
 
 namespace ElgamalSandbox.Web
 {
@@ -33,7 +32,7 @@ namespace ElgamalSandbox.Web
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
             builder.Services.AddIdentityModel();
             builder.Services.AddScoped<IUserContext, UserContext>();
-            builder.Services.AddBlazorDragDrop();
+            builder.Services.AddMudServices();
 
             builder.Services.AddSingleton<IEmailSender<User>, IdentityNoOpEmailSender>();
 
@@ -66,7 +65,7 @@ namespace ElgamalSandbox.Web
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode()
                 .AddInteractiveWebAssemblyRenderMode()
-                .AddAdditionalAssemblies(typeof(Counter).Assembly);
+                .AddAdditionalAssemblies(typeof(Client.UserInfo).Assembly);
 
             // Add additional endpoints required by the Identity /Account Razor components.
             app.MapAdditionalIdentityEndpoints();

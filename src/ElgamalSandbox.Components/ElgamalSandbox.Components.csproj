@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+	  <PackageId>ElgamalSandbox.Components</PackageId>
+	  <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\js\" />
+  </ItemGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Exec Condition="$(Configuration) == 'Debug'" Command="npm run build" WorkingDirectory="JS" />
+		<Exec Condition="$(Configuration) == 'Release'" Command="npm run build" WorkingDirectory="JS" />
+	</Target>
+
+</Project>
