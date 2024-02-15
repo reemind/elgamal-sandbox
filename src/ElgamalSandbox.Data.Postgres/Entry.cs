@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ElgamalSandbox.Data.Postgres
+namespace ElgamalSandbox.Data.SqLite
 {
     /// <summary>
 	/// Класс - входная точка проекта, регистрирующий реализованные зависимости текущим проектом
@@ -10,44 +10,45 @@ namespace ElgamalSandbox.Data.Postgres
 	public static class Entry
     {
         /// <summary>
-        /// Добавить службы проекта с Postgresql
+        /// Добавить службы проекта с SqLite
         /// </summary>
         /// <param name="services">Коллекция служб</param>
-        /// <param name="optionsAction">Параметры подключения к Postgresql</param>
+        /// <param name="optionsAction">Параметры подключения к SqLite</param>
         /// <returns>Обновленная коллекция служб</returns>
-        public static IServiceCollection AddPostgreSql(
+        public static IServiceCollection AddSqLite(
             this IServiceCollection services,
-            Action<PostgresDbOptions>? optionsAction)
+            Action<SqLiteDbOptions>? optionsAction)
         {
-            var options = new PostgresDbOptions();
+            var options = new SqLiteDbOptions();
             optionsAction?.Invoke(options);
 
-            return services.AddPostgreSql(options);
+            return services.AddSqLite(options);
         }
 
         /// <summary>
-        /// Добавить службы проекта с Postgresql
+        /// Добавить службы проекта с SqLite
         /// </summary>
         /// <param name="services">Коллекция служб</param>
-        /// <param name="options">Конфиг подключения к Postgresql</param>
+        /// <param name="options">Конфиг подключения к SqLite</param>
         /// <returns>Обновленная коллекция служб</returns>
-        public static IServiceCollection AddPostgreSql(
+        public static IServiceCollection AddSqLite(
             this IServiceCollection services,
-            PostgresDbOptions options)
+            SqLiteDbOptions options)
         {
             if (options == null)
                 throw new ArgumentNullException(nameof(options));
 
-            if (string.IsNullOrWhiteSpace(options.ConnectionString))
-                throw new ArgumentException(nameof(options.ConnectionString));
+            if (string.IsNullOrWhiteSpace(options.Path))
+                throw new ArgumentException(nameof(options.Path));
 
             services.AddDbContext<EfContext>(opt =>
             {
                 if (options?.SqlLoggerFactory != null)
                     opt.UseLoggerFactory(options.SqlLoggerFactory);
-                opt.UseNpgsql(options!.ConnectionString);
+                opt.UseSqlite($"Data Source={options!.Path}");
                 opt.UseQueryTrackingBehavior(QueryTrackingBehavior.TrackAll);
                 opt.UseSnakeCaseNamingConvention();
+                opt.EnableSensitiveDataLogging();
             });
 
             services.AddTransient<DbMigrator>();

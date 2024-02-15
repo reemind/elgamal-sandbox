@@ -1,0 +1,11 @@
+﻿<MudDialog DisableSidePadding="true">
+    <DialogContent>
+        <MudContainer Style="max-height: 80vh; overflow-y: scroll">
+            <MudMarkdown Value="@Content" CodeBlockTheme="CodeBlockTheme.GithubDark"></MudMarkdown>
+        </MudContainer>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [Parameter] public string Content { get; set; }
+}

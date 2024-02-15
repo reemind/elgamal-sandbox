@@ -7,7 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{F513A520-837
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ElgamalSandbox.Core", "src\ElgamalSandbox.Core\ElgamalSandbox.Core.csproj", "{E24C7CA1-A11D-4945-A607-97E5F5A079FE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ElgamalSandbox.Data.PostgreSql", "src\ElgamalSandbox.Data.Postgres\ElgamalSandbox.Data.PostgreSql.csproj", "{709B512D-01C4-4D1E-8396-AB59F38C81F5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ElgamalSandbox.Data.SqLite", "src\ElgamalSandbox.Data.Postgres\ElgamalSandbox.Data.SqLite.csproj", "{709B512D-01C4-4D1E-8396-AB59F38C81F5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ElgamalSandbox.Web", "src\ElgamalSandbox.Web\ElgamalSandbox.Web\ElgamalSandbox.Web.csproj", "{EFAA5FC1-6191-4D58-8CAD-E4BFAFEFFF62}"
 EndProject

@@ -1,0 +1,7 @@
+﻿@using ElgamalSandbox.Core.Entities
+
+<MarkdownDialog Content="@Task.Description"></MarkdownDialog>
+
+@code {
+    [Parameter] public TaskDescription Task { get; set; }
+}

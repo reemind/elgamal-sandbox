@@ -1,7 +1,46 @@
 ﻿@page "/"
+@using ElgamalSandbox.Core.Abstractions
+@using ElgamalSandbox.Core.Entities
+@inject IDbContext DbContext
 
-<h1>Hello, world!</h1>
+<MudPaper Class="pa-4 ma-4 d-flex justify-center">
+<h1>Крипто-песочница</h1>
+</MudPaper>
 
-Welcome to your new app.
+<MudPaper Class="pa-4 ma-4">
+    <MudChart ChartType="ChartType.Donut" Width="300px" Height="300px" InputData="@data" InputLabels="@labels"></MudChart>
+</MudPaper>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+<MudPaper Class="pa-4 ma-4 d-flex justify-center gap-4">
+    <MudLink Href="https://t.me/ree_mind">Telegram</MudLink>
+    <MudLink Href="https://github.com/reemind">Github</MudLink>
+</MudPaper>
+
+@code
+{
+    int dataSize = 4;
+    public double[] data;
+    public string[] labels = { "Решено", "Начато", "Не решено" };
+
+    /// <inheritdoc />
+    protected override Task OnInitializedAsync()
+    {
+        var stats = DbContext.TaskDescriptions
+            .Select(x => new
+            {
+                Solved = x.Attempts.Any(x => 
+                    x.IsSucceeded
+                    && x.Tests.All(x => x.Result == TestResult.Success)),
+                HasAttempts = x.Attempts.Any() || x.Playground != null
+            });
+
+        data = new double[]
+        {
+            stats.Count(x => x.Solved),
+            stats.Count(x => x.HasAttempts && !x.Solved),
+            stats.Count(x => !x.HasAttempts)
+        };
+
+        return base.OnInitializedAsync();
+    }
+}

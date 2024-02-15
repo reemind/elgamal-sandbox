@@ -1,0 +1,169 @@
+﻿@page "/task/{taskId:long}"
+@using ElgamalSandbox.Core.Abstractions
+@using ElgamalSandbox.Core.Entities
+@using ElgamalSandbox.Core.Exceptions
+@using ElgamalSandbox.Components.Sandbox
+@using Microsoft.EntityFrameworkCore
+@inject IDbContext DbContext
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<SectionContent SectionId="@MainLayout.TopbarSection">
+    <MudIconButton Class="ml-2" Edge="Edge.Start" Color="Color.Inherit" Icon="@Icons.Material.Filled.Save" OnClick="@SaveAsync"></MudIconButton>
+    <MudIconButton Class="ml-2" Edge="Edge.Start" Color="Color.Inherit" Icon="@Icons.Material.Filled.PlayArrow" OnClick="@RunAsync"></MudIconButton>
+    <MudIconButton Class="ml-2" Edge="Edge.Start" Color="Color.Inherit" Icon="@Icons.Material.Filled.Science" OnClick="@RunTestsAsync"></MudIconButton>
+    <MudSpacer/>
+    <TaskResultChip TaskDescription="@_task"></TaskResultChip>
+    <MudSpacer/>
+    <MudIconButton Class="ml-2" Edge="Edge.End" Color="Color.Inherit" Icon="@Icons.Material.Filled.Description" OnClick="@ShowCodeAsync"></MudIconButton>
+    <MudIconButton Class="ml-2" Edge="Edge.End" Color="Color.Inherit" Icon="@Icons.Material.Filled.Help" OnClick="@ShowDescriptionAsync"></MudIconButton>
+</SectionContent>
+
+<div class="h100 d-flex flex-column">
+    <div class="d-flex flex-row justify-space-between align-content-center">
+        <MudBreadcrumbs Items="_items"></MudBreadcrumbs>
+        <MudLink Href="@($"/task/{TaskId}/attempts")">История</MudLink>
+    </div>
+
+    <div class="d-flex h100">
+        <SandboxCanvas @ref="_sandboxCanvas" Playground="@_task.Playground" ToolBox="@_task.Toolbox" Parameters="@_task.InputVars.Concat(_task.OutputVars)"></SandboxCanvas>
+    </div>
+</div>
+
+@code {
+    private TaskDescription _task = default!;
+    private List<BreadcrumbItem> _items = default!;
+    private SandboxCanvas _sandboxCanvas = default!;
+
+    [Parameter]
+    public long TaskId { get; set; }
+
+    /// <inheritdoc />
+    protected override async Task OnInitializedAsync()
+    {
+        _task = await DbContext.TaskDescriptions
+            .Include(x => x.Attempts)
+                .ThenInclude(x => x.Tests)
+            .Include(x => x.Tests)
+            .FirstOrDefaultAsync(x => x.Id.ToString() == TaskId.ToString())
+            ?? throw new EntityNotFoundException<TaskDescription>(TaskId);
+
+        _items =
+        [
+            new BreadcrumbItem("Tasks", href: "/tasks"),
+            new BreadcrumbItem(_task!.Name, href: null)
+        ];
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && _task.Playground is null)
+        {
+            await ShowDescriptionAsync(null!);
+        }
+    }
+
+    private async Task RunAsync()
+    {
+        await SaveAsync();
+
+        var result = await RunDialog<RunTaskDialog>();
+
+        if (result is not null)
+        {
+            await DialogService.ShowAsync<TaskResultDialog>(
+                _task.Name,
+                new DialogParameters()
+                {
+                    {nameof(TaskResultDialog.TaskAttempt), result}
+                }
+            );
+        }
+    }
+
+    private async Task RunTestsAsync()
+    {
+        await SaveAsync();
+
+        var result = await RunDialog<RunTestsDialog>();
+
+        if (result is not null)
+        {
+            await DialogService.ShowAsync<TaskResultDialog>(
+                _task.Name,
+                new DialogParameters()
+                {
+                    {nameof(TaskResultDialog.TaskAttempt), result}
+                }
+            );
+        }
+        else
+        {
+            
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        _task.Playground = await _sandboxCanvas.SaveAsync();
+        await DbContext.SaveChangesAsync();
+        Snackbar.Add("Saved", Severity.Success);
+    }
+
+    private async Task<TaskAttempt?> RunDialog<TDialog>()
+        where TDialog: ComponentBase
+    {
+        var dialog = await DialogService.ShowAsync<TDialog>(
+            _task.Name,
+            new DialogParameters()
+                {
+                {nameof(RunTaskDialog.TaskForRun), _task},
+                {nameof(RunTaskDialog.Code), await _sandboxCanvas.GenerateAsync()
+                }
+                },
+            new DialogOptions()
+                {
+                    MaxWidth = MaxWidth.Small,
+                    FullWidth = true,
+                    CloseButton = true,
+                });
+
+        return (await dialog.Result).Canceled
+            ? null
+            : await dialog.GetReturnValueAsync<TaskAttempt>();
+    }
+
+    private async Task ShowDescriptionAsync(MouseEventArgs arg)
+    {
+        await DialogService.ShowAsync<DescriptionDialog>(
+            _task.Name,
+            new DialogParameters
+            {
+                {nameof(DescriptionDialog.Task), _task},
+            },
+            new DialogOptions
+            {
+                MaxWidth = MaxWidth.Medium,
+                FullWidth = true,
+                CloseButton = true,
+            });
+    }
+
+    private async Task ShowCodeAsync(MouseEventArgs arg)
+    {
+        await DialogService.ShowAsync<CodeDialog>(
+            _task.Name,
+            new DialogParameters
+                {
+                {nameof(CodeDialog.Code), await _sandboxCanvas.GenerateAsync()},
+                },
+            new DialogOptions
+                {
+                    MaxWidth = MaxWidth.Medium,
+                    FullWidth = true,
+                    CloseButton = true,
+                });
+    }
+
+}

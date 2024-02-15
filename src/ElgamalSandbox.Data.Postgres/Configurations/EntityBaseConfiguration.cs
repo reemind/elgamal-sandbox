@@ -1,8 +1,9 @@
 using ElgamalSandbox.Core.Entities;
+using ElgamalSandbox.Data.SqLite.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace ElgamalSandbox.Data.Postgres.Configurations
+namespace ElgamalSandbox.Data.SqLite.Configurations
 {
     /// <summary>
     /// Базовая конфигурация для базовой сущности <see cref="EntityBase"/>
@@ -11,8 +12,6 @@ namespace ElgamalSandbox.Data.Postgres.Configurations
     internal abstract class EntityBaseConfiguration<TEntity> : IEntityTypeConfiguration<TEntity>
          where TEntity : EntityBase
     {
-        private const string GuidCommand = "uuid_in(md5(random()::text || clock_timestamp()::text)::cstring)";
-
         /// <inheritdoc/>
         public void Configure(EntityTypeBuilder<TEntity> builder)
         {
@@ -30,7 +29,9 @@ namespace ElgamalSandbox.Data.Postgres.Configurations
         {
             builder.HasKey(x => x.Id);
             builder.Property(x => x.Id).IsRequired()
-                .HasDefaultValueSql(GuidCommand);
+                .ValueGeneratedOnAdd();
+
+            builder.ConfigureTimeTrackableEntity();
         }
     }
 }

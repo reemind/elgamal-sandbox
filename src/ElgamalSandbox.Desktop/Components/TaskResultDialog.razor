@@ -1,0 +1,66 @@
+﻿@using ElgamalSandbox.Core.Entities
+@using ElgamalSandbox.Core.Enums
+
+<MudDialog>
+    <DialogContent>
+        <MudStack>
+            @if (TaskAttempt.IsSucceeded)
+            {
+                @switch (TaskAttempt.Type)
+                {
+                    case AttemptTypes.Typical:
+                        <MudTextField T="string" Label="Результат" Variant="Variant.Outlined" Text="@TaskAttempt.Result" AutoGrow/>
+                        break;
+                    case AttemptTypes.Test:
+                        <MudStack>
+                            @foreach (var test in TaskAttempt.Tests.Select((x, i) => (i, x)))
+                            {
+                                <div class="d-flex flex-grow-1 gap-4 align-center">
+                                    <MudText>Тест: @(test.i+1)</MudText>
+                                    @switch (test.x.Result)
+                                    {
+                                        case TestResult.Success:
+                                            <MudChip Variant="Variant.Filled" Color="Color.Success">Пройден</MudChip>
+                                            break;
+                                        case TestResult.Failure:
+                                            <MudChip Variant="Variant.Filled" Color="Color.Error">Не пройден</MudChip>
+                                            break;
+                                        case TestResult.Skipped:
+                                            <MudChip Variant="Variant.Filled" Color="Color.Default">Пропущен</MudChip>
+                                            break;
+                                        default:
+                                            throw new ArgumentOutOfRangeException();
+                                    }
+                                </div>
+                            }
+                        </MudStack>
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+            else
+            {
+            <MudExpansionPanels>
+                <MudExpansionPanel Text="Ошибка">
+                    <MudText>
+                        @TaskAttempt.Result
+                    </MudText>
+                </MudExpansionPanel>
+            </MudExpansionPanels>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="@Cancel" Variant="Variant.Filled">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public TaskAttempt TaskAttempt { get; set; }
+    
+    void Cancel() => MudDialog.Cancel();
+}

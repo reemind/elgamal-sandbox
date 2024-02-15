@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace ElgamalSandbox.Data.Postgres.Extensions
+namespace ElgamalSandbox.Data.SqLite.Extensions
 {
 	/// <summary>
 	/// Расширения <see cref="EntityTypeBuilder"/>

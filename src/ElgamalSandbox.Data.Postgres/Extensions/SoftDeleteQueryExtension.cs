@@ -3,7 +3,7 @@ using System.Reflection;
 using ElgamalSandbox.Core.Entities.Common;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace ElgamalSandbox.Data.Postgres.Extensions
+namespace ElgamalSandbox.Data.SqLite.Extensions
 {
     /// <summary>
     /// Расширения для soft delete

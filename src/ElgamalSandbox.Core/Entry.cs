@@ -11,6 +11,7 @@ namespace ElgamalSandbox.Core
             services.AddMediatR(config =>
                 config.RegisterServicesFromAssembly(typeof(Entry).Assembly));
             services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+            services.AddScoped<IDbSeeder, DbSeeder>();
 
             return services;
         }

@@ -1,0 +1,91 @@
+﻿@page "/task/{taskId:long}/attempts"
+@using Microsoft.EntityFrameworkCore
+@using ElgamalSandbox.Core.Entities
+@using ElgamalSandbox.Core.Enums
+@using ElgamalSandbox.Core.Exceptions
+@inject IDbContext DbContext
+
+<MudBreadcrumbs Items="_items"></MudBreadcrumbs>
+
+<MudTable Items="@_elements" Hover="true">
+    <HeaderContent>
+        <MudTh>Время</MudTh>
+        <MudTh>Тип</MudTh>
+        <MudTh>Тестов пройдено</MudTh>
+        <MudTh>Инфо</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Время">@context.RunDate</MudTd>
+        <MudTd DataLabel="Тип">@context.Type</MudTd>
+        <MudTd DataLabel="Тестов пройдено">
+            @context.TestPassed
+        </MudTd>
+        <MudTd DataLabel="Инфо">
+            <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => ShowBtnPress(context.Id))">@((context.ShowDetails == true) ? "Скрыть" : "Показать") код</MudButton>
+            <MudButton>Показать результат</MudButton>
+        </MudTd>
+    </RowTemplate>
+    <ChildRowContent>
+        @if (context.ShowDetails)
+        {
+            <MudTr>
+            <td colspan="4">
+                <MudCard >
+                    <MudMarkdown Value="@($"```python\n{@context.Code}\n```")" CodeBlockTheme="CodeBlockTheme.GithubDark"></MudMarkdown>
+                </MudCard>
+            </td>
+            </MudTr>
+        }
+    </ChildRowContent>
+</MudTable>
+
+@code {
+    private List<BreadcrumbItem> _items;
+    private TaskDescription _task;
+    private List<Item> _elements;
+
+    [Parameter]
+    public long TaskId { get; set; }
+
+    /// <inheritdoc />
+    protected override async Task OnInitializedAsync()
+    {
+        _task = await DbContext.TaskDescriptions
+                    .Include(x => x.Attempts)
+                    .ThenInclude(x => x.Tests)
+                    .Include(x => x.Tests)
+                    .FirstOrDefaultAsync(x => x.Id.ToString() == TaskId.ToString())
+                ?? throw new EntityNotFoundException<TaskDescription>(TaskId);
+
+        _elements = _task.Attempts
+            .Select(x => new Item(
+                x.Id,
+                x.Code,
+                x.IsSucceeded,
+                x.Type,
+                x.CreatedAt,
+                x.Type == Core.Enums.AttemptTypes.Test
+                    ? $"{x.Tests.Count(x => x.Result == TestResult.Success)} из {x.Tests.Count}"
+                    : ""))
+            .ToList();
+
+        _items =
+        [
+            new BreadcrumbItem("Tasks", href: "/tasks"),
+            new BreadcrumbItem(_task!.Name, href: null)
+        ];
+
+    }
+
+    private void ShowBtnPress(long id)
+    {
+        var item = _elements.First(f => f.Id == id);
+        item.ShowDetails = !item.ShowDetails;
+    }
+
+    record Item(long Id, string Code, bool IsSuccessful, AttemptTypes Type, DateTime RunDate, string TestPassed)
+    {
+        public bool ShowDetails { get; set; }
+    };
+
+}

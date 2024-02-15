@@ -34,7 +34,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\ElgamalSandbox.Core\ElgamalSandbox.Core.csproj" />
-		<ProjectReference Include="..\ElgamalSandbox.Data.Postgres\ElgamalSandbox.Data.PostgreSql.csproj" />
+		<ProjectReference Include="..\ElgamalSandbox.Data.Postgres\ElgamalSandbox.Data.SqLite.csproj" />
 	</ItemGroup>
 
 </Project>

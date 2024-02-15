@@ -1,0 +1,40 @@
+﻿@using ElgamalSandbox.Desktop.Services
+@using ElgamalSandbox.Core.Entities
+@using ElgamalSandbox.Core.Enums
+@inject TaskRunner TaskRunner
+
+<MudDialog >
+    <DialogContent>
+        <h3>Тестируем...</h3>
+        <MudOverlay DarkBackground="true" Absolute="true">
+            <MudProgressCircular Color="Color.Secondary" Indeterminate="true"/>
+        </MudOverlay>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [Parameter] public TaskDescription TaskForRun { get; set; }
+
+    [Parameter] public string Code { get; set; }
+    public Dictionary<string, string> Values { get; set; }
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    /// <inheritdoc />
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var attempt = new TaskAttempt()
+            {
+                Code = Code,
+                Parameters = Values,
+                TaskDescription = TaskForRun,
+                Type = AttemptTypes.Test,
+            };
+
+            await TaskRunner.RunAsync(attempt);
+            MudDialog.Close(attempt);
+        }
+    }
+}

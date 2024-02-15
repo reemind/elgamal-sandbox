@@ -1,23 +1,38 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<MudThemeProvider IsDarkMode="true"/>
+<MudDialogProvider />
+<MudSnackbarProvider />
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4" style="height: 100%">
-            @Body
-        </article>
-    </main>
-</div>
+<MudAppBar @rendermode="InteractiveWebAssembly" Elevation="1">
+    <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="ToggleDrawer" />
+  
+</MudAppBar>
+<MudDrawer @bind-Open="@open" Elevation="1">
+    <MudDrawerHeader>
+        <MudText Typo="Typo.h6">My App</MudText>
+    </MudDrawerHeader>
+    <NavMenu/>
+</MudDrawer>
+<MudMainContent Class="pt-16 px-16">
+    <MudButton OnClick="(e) => Console.WriteLine(123)">123</MudButton>
+    <MudContainer Class="mt-6">
+        @Body
+    </MudContainer>
+</MudMainContent>
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+@code {
+    bool open = true;
+
+    void ToggleDrawer()
+    {
+        open = !open;
+        Console.WriteLine(open);
+    }
+}

@@ -1,24 +1,20 @@
 using ElgamalSandbox.Core.Abstractions;
 using ElgamalSandbox.Core.Entities;
 using ElgamalSandbox.Core.Entities.Common;
-using ElgamalSandbox.Core.Exceptions;
-using ElgamalSandbox.Data.Postgres.Extensions;
+using ElgamalSandbox.Data.SqLite.Extensions;
 using MediatR;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Npgsql;
 
-namespace ElgamalSandbox.Data.Postgres
+namespace ElgamalSandbox.Data.SqLite
 {
     /// <summary>
     /// Контекст EF Core для приложения
     /// </summary>
-    public class EfContext : IdentityDbContext<User, Role, Guid>, IDbContext
+    public class EfContext : DbContext, IDbContext
     {
         private const string DefaultSchema = "public";
-        private readonly IUserContext _userContext;
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly IMediator _domainEventsDispatcher;
 
@@ -32,19 +28,20 @@ namespace ElgamalSandbox.Data.Postgres
         /// <param name="domainEventsDispatcher">Медиатор для доменных событий</param>
         public EfContext(
             DbContextOptions<EfContext> options,
-            IUserContext userContext,
             IDateTimeProvider dateTimeProvider,
             IMediator domainEventsDispatcher)
             : base(options)
         {
-            _userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
             _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
             _domainEventsDispatcher = domainEventsDispatcher ?? throw new ArgumentNullException(nameof(domainEventsDispatcher));
         }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
-        /// <inheritdoc/>
-        public DbSet<User> Users { get; set; }
+        /// <inheritdoc />
+        public DbSet<TaskDescription> TaskDescriptions { get; set; }
+
+        /// <inheritdoc />
+        public DbSet<TaskAttempt> TaskAttempts { get; set; }
 
         /// <inheritdoc/>
         public bool IsInMemory => Database.IsInMemory();
@@ -80,41 +77,21 @@ namespace ElgamalSandbox.Data.Postgres
                 .SelectMany(x => x.RetrieveDomainEvents())
                 .ToArray();
 
-            try
-            {
-                foreach (var @event in domainEvents)
-                    await _domainEventsDispatcher.Publish(@event, cancellationToken);
+            foreach (var @event in domainEvents)
+                await _domainEventsDispatcher.Publish(@event, cancellationToken);
 
-                if (entityEntries.Length > 10)
-                    entityEntries.AsParallel().ForAll(OnSave);
-                else
-                    foreach (var entityEntry in entityEntries)
-                        OnSave(entityEntry);
+            if (entityEntries.Length > 10)
+                entityEntries.AsParallel().ForAll(OnSave);
+            else
+                foreach (var entityEntry in entityEntries)
+                    OnSave(entityEntry);
 
-                return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
-            }
-            catch (DbUpdateException ex)
-            {
-                return HandleDbUpdateException(ex, cancellationToken);
-            }
+            return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
         }
 
         /// <inheritdoc/>
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
             await SaveChangesAsync(true, cancellationToken);
-
-        protected virtual int HandleDbUpdateException(DbUpdateException ex, CancellationToken cancellationToken = default)
-        {
-            if (ex?.InnerException is PostgresException postgresEx)
-                throw postgresEx.SqlState switch
-                {
-                    PostgresErrorCodes.ForeignKeyViolation => new ApplicationExceptionBase(
-                        $"Заданы некорректные идентификаторы для внешних ключей сущности: {postgresEx.Detail}", ex),
-                    PostgresErrorCodes.UniqueViolation => new DuplicateUniqueKeyException(ex),
-                    _ => ex,
-                };
-            throw ex ?? throw new ArgumentNullException(nameof(ex));
-        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -172,7 +149,6 @@ namespace ElgamalSandbox.Data.Postgres
             if (entityEntry.State != EntityState.Unchanged)
             {
                 UpdateTimestamp(entityEntry);
-                SetModifiedUser(entityEntry);
             }
 
             if (entityEntry.State == EntityState.Deleted)
@@ -192,19 +168,6 @@ namespace ElgamalSandbox.Data.Postgres
             if (entityEntry.State == EntityState.Added
                 && entity is IAddTrackable addTrackable)
                 addTrackable.CreatedAt = _dateTimeProvider.UtcNow;
-        }
-
-        private void SetModifiedUser(EntityEntry entityEntry)
-        {
-            if (entityEntry?.Entity != null
-                && entityEntry.State != EntityState.Unchanged
-                && entityEntry.Entity is IUserTrackable userTrackable)
-            {
-                userTrackable.ModifiedByUserId = _userContext.CurrentUserId;
-
-                if (entityEntry.State == EntityState.Added)
-                    userTrackable.CreatedByUserId = _userContext.CurrentUserId;
-            }
         }
     }
 }

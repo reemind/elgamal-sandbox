@@ -1,0 +1,9 @@
+﻿@using System.Text.Json.Nodes
+@using ElgamalSandbox.Components.Sandbox
+
+<SandboxCanvas ToolBox="@ToolBox"></SandboxCanvas>
+
+
+@code {
+    [Parameter] public JsonObject ToolBox { get; set; }
+}

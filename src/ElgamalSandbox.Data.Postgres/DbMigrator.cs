@@ -1,7 +1,8 @@
+using ElgamalSandbox.Core.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace ElgamalSandbox.Data.Postgres
+namespace ElgamalSandbox.Data.SqLite
 {
     /// <summary>
     /// Мигратор
@@ -10,6 +11,7 @@ namespace ElgamalSandbox.Data.Postgres
     {
         private readonly EfContext _documentDbContext;
         private readonly ILogger<DbMigrator> _logger;
+        private readonly IDbSeeder _dbSeeder;
 
         /// <summary>
         /// Конструктор
@@ -18,10 +20,12 @@ namespace ElgamalSandbox.Data.Postgres
         /// <param name="logger">Логгер</param>
         public DbMigrator(
             EfContext dbContext,
-            ILogger<DbMigrator> logger)
+            ILogger<DbMigrator> logger,
+            IDbSeeder dbSeeder)
         {
             _documentDbContext = dbContext;
             _logger = logger;
+            _dbSeeder = dbSeeder;
         }
 
         /// <summary>
@@ -35,6 +39,7 @@ namespace ElgamalSandbox.Data.Postgres
             try
             {
                 await _documentDbContext.Database.MigrateAsync().ConfigureAwait(false);
+                await _dbSeeder.SeedAsync();
                 _logger.LogInformation("UpdateDatabase:{operationId}: successfully done", operationId);
             }
             catch (Exception exception)

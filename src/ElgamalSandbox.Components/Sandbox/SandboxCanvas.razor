@@ -3,16 +3,19 @@
 @using System.Text.Json.Nodes
 @using ElgamalSandbox.Components.Extensions
 @using System.Diagnostics
+@using System.Text.Json
 @inject IJSRuntime JS
 
-<button onclick="@GenerateAsync">Generate</button>
-<button onclick="@SaveAsync">Save</button>
-<div id="blocklyDiv" style="height: 100%; width: 100%;"></div>
+<div id="blocklyArea" style="height: 100%; width: 100%">
+    <div id="blocklyDiv" style="position: absolute;"></div>
+</div>
 
 @code {
     private IJSObjectReference _workspace;
     private dynamic _module;
     [Parameter] public JsonObject ToolBox { get; set; }
+    [Parameter] public string? Playground { get; set; }
+    [Parameter] public IEnumerable<string> Parameters { get; set; }
 
     /// <inheritdoc />
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -21,20 +24,21 @@
         {
             _module = await JS.Import<SandboxCanvas>("js/index.bundle.js");
 
-            _workspace = await _module.init<IJSObjectReference>(ToolBox);
+            _workspace = await _module.init<IJSObjectReference>(ToolBox, Playground, Parameters.ToArray());
         }
     }
 
-
-    private async Task GenerateAsync()
+    public async Task<string> GenerateAsync()
     {
         string code = await _module.generate<string>(_workspace);
-        Console.WriteLine(code);
+
+        return code;
     }
 
-    private async Task SaveAsync()
+    public async Task<string?> SaveAsync()
     {
-        string code = await _module.save<string>(_workspace);
-        Console.WriteLine(code);
+        string playground = await _module.save<string>(_workspace);
+
+        return playground;
     }
 }

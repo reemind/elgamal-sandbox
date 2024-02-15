@@ -1,6 +1,5 @@
 using ElgamalSandbox.Core.Abstractions;
 using ElgamalSandbox.Core.Services;
-using ElgamalSandbox.Data.Postgres;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +9,7 @@ using Serilog.Core;
 using Serilog.Formatting.Json;
 using System;
 using System.Threading.Tasks;
+using ElgamalSandbox.Data.SqLite;
 
 namespace ElgamalSandbox.Data.Migrator
 {
@@ -57,7 +57,7 @@ namespace ElgamalSandbox.Data.Migrator
                      builder.SetMinimumLevel(LogLevel.Information);
                      builder.AddSerilog(CreateSystemLogger(configuration), dispose: true);
                  })
-                .AddPostgreSql(x => x.ConnectionString = configuration["Application:DbConnectionString"])
+                .AddSqLite(x => x.Path = configuration["Application:DbConnectionString"])
                 .AddSingleton<IUserContext, UserContext>()
                 .AddMediatR(x => x.RegisterServicesFromAssembly(typeof(Program).Assembly))
                 .AddSingleton<IDateTimeProvider, DateTimeProvider>()

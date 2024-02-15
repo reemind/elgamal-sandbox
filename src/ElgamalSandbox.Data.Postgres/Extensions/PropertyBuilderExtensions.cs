@@ -2,7 +2,7 @@ using ElgamalSandbox.Core.Entities.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace ElgamalSandbox.Data.Postgres.Extensions
+namespace ElgamalSandbox.Data.SqLite.Extensions
 {
     /// <summary>
     /// Методы расширения для конфигурации сущностей

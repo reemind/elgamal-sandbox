@@ -8,15 +8,9 @@ namespace ElgamalSandbox.Core.Abstractions
     /// </summary>
     public interface IDbContext
     {
-        /// <summary>
-        /// Пользователи
-        /// </summary>
-        DbSet<User> Users { get; }
+        public DbSet<TaskDescription> TaskDescriptions { get; }
 
-        /// <summary>
-        /// Роли
-        /// </summary>
-        DbSet<Role> Roles { get; }
+        public DbSet<TaskAttempt> TaskAttempts { get; }
 
         /// <summary>
         /// БД в памяти

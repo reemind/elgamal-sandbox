@@ -1,0 +1,10 @@
+﻿
+<MarkdownDialog Content="@Content"></MarkdownDialog>
+
+@code {
+    private string Content => $"```python\n" +
+                              $"{Code}\n" +
+                              $"```\n";
+
+    [Parameter] public string Code { get; set; }
+}

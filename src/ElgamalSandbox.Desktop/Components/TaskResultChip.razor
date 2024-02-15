@@ -1,0 +1,14 @@
+﻿@using ElgamalSandbox.Core.Entities
+
+@if (TaskDescription.Attempts.Any(x => x.IsPassedTests))
+{
+    <MudChip Variant="Variant.Filled" Color="Color.Success">Решена</MudChip>
+}
+else
+{
+    <MudChip Variant="Variant.Filled" Color="Color.Default">Не решена</MudChip>
+}
+
+@code {
+    [Parameter] public TaskDescription TaskDescription { get; set; }
+}

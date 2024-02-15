@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System.Text.Json;
 
-namespace ElgamalSandbox.Data.Postgres.Extensions
+namespace ElgamalSandbox.Data.SqLite.Extensions
 {
     /// <summary>
     /// Расширение преобразования значений типа jsonb
@@ -27,7 +27,7 @@ namespace ElgamalSandbox.Data.Postgres.Extensions
                 v => JsonSerializer.Deserialize<T>(v, settings)!);
 
             propertyBuilder.HasConversion(converter);
-            propertyBuilder.HasColumnType("jsonb");
+            propertyBuilder.HasColumnType("TEXT");
 
             return propertyBuilder;
         }

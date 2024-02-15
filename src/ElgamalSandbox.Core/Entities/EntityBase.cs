@@ -1,4 +1,5 @@
 using ElgamalSandbox.Core.DomainEvents;
+using ElgamalSandbox.Core.Entities.Common;
 using System.Collections.Concurrent;
 
 namespace ElgamalSandbox.Core.Entities
@@ -6,7 +7,7 @@ namespace ElgamalSandbox.Core.Entities
     /// <summary>
     /// Базовая сущность
     /// </summary>
-    public abstract class EntityBase
+    public abstract class EntityBase : ITimeTrackable
     {
         /// <summary>
         /// Доменные события
@@ -14,14 +15,21 @@ namespace ElgamalSandbox.Core.Entities
         private ConcurrentQueue<IDomainEvent>? _domainEvents;
 
         /// <summary>
-        /// ИД сущности
+        /// Идентификатор
         /// </summary>
-        public Guid Id { get; set; }
+        public long Id { get; set; }
+
+        /// <inheritdoc />
+        public DateTime CreatedAt { get; set; }
+
+        /// <inheritdoc />
+        public DateTime UpdatedAt { get; set; }
 
         /// <summary>
         /// Является ли сущность новой
         /// </summary>
         public bool IsNew => Id == default;
+
 
         /// <summary>
         /// Добавить доменное событие

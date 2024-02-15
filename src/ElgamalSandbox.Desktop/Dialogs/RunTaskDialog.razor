@@ -1,0 +1,75 @@
+﻿@using ElgamalSandbox.Desktop.Services
+@using ElgamalSandbox.Core.Entities
+@using ElgamalSandbox.Core.Enums
+@inject TaskRunner TaskRunner
+
+<MudDialog >
+    <DialogContent>
+        <MudOverlay Visible="@_isLoading" DarkBackground="true" Absolute="true">
+            <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+        </MudOverlay>
+        <MudStack>
+            @foreach (var inputVar in Values.Keys)
+            {
+                <MudTextField Disabled="_isLoading" T="string"
+                              Label="@inputVar"
+                              Variant="Variant.Outlined"
+                              TextChanged="value => Values[inputVar] = value"
+                              Value="@Values[inputVar]"></MudTextField>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="@RunAsync" Variant="Variant.Filled">Запустить</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public TaskDescription TaskForRun { get; set; }
+
+    [Parameter] public string Code { get; set; }
+    public Dictionary<string, string> Values { get; set; }
+
+    private bool _isLoading = false;
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        Values = TaskForRun.Attempts
+            // ReSharper disable once SimplifyLinqExpressionUseMinByAndMaxBy
+            .Where(x => x.Type == AttemptTypes.Typical)
+            .OrderByDescending(x => x.CreatedAt)
+            .FirstOrDefault()
+            ?.Parameters;
+
+        if (Values is not null)
+            return;
+
+        Values = new Dictionary<string, string>();
+
+        foreach (var inputVar in TaskForRun.InputVars)
+        {
+            Values[inputVar] = "";
+        }
+    }
+
+    void Cancel() => MudDialog.Cancel();
+
+    private async Task RunAsync()
+    {
+        _isLoading = true;
+        var attempt = new TaskAttempt()
+        {
+            Code = Code,
+            Parameters = Values,
+            TaskDescription = TaskForRun,
+            Type = AttemptTypes.Typical,
+        };
+
+        await TaskRunner.RunAsync(attempt);
+        _isLoading = false;
+        MudDialog.Close(attempt);
+    }
+}

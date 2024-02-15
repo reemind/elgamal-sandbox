@@ -11,7 +11,6 @@ namespace ElgamalSandbox.Core.Exceptions
     {
         private static readonly IReadOnlyDictionary<Type, string> EntityExceptionTexts = new Dictionary<Type, string>
         {
-            [typeof(User)] = "Не найдены пользователи",
         };
 
         /// <summary>
@@ -27,7 +26,7 @@ namespace ElgamalSandbox.Core.Exceptions
         /// Исключение о том, что сущность не найдена (числовой идентификатор)
         /// </summary>
         /// <param name="id">ИД сушности</param>
-        public EntityNotFoundException(int id)
+        public EntityNotFoundException(long id)
             : base($"{EntityException} с идентификатором: {id}.")
         {
         }
