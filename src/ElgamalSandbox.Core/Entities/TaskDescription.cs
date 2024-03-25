@@ -4,6 +4,11 @@ namespace ElgamalSandbox.Core.Entities;
 
 public class TaskDescription : EntityBase
 {
+    public TaskDescription()
+    {
+        PerformanceTests = new List<PerformanceTest>();
+    }
+
     public JsonObject Toolbox { get; set; }
 
     public string[] InputVars { get; set; }
@@ -21,4 +26,6 @@ public class TaskDescription : EntityBase
     public List<TaskAttempt> Attempts { get; set; }
 
     public List<TaskTest> Tests { get; set; }
+
+    public List<PerformanceTest> PerformanceTests { get; set; }
 }

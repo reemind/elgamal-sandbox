@@ -1,6 +1,5 @@
 ﻿using ElgamalSandbox.Core;
 using ElgamalSandbox.Data.SqLite;
-using ElgamalSandbox.Desktop.Services;
 using Microsoft.Extensions.Logging;
 using MudBlazor;
 using MudBlazor.Services;
@@ -14,31 +13,39 @@ namespace ElgamalSandbox.Desktop
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
-                .ConfigureFonts(fonts =>
-                {
-                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                });
+                .ConfigureFonts(fonts => { fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular"); });
+
+            var isDevelopment = GetDebugEnvironment();
 
             builder.Services.AddCore();
             builder.Services.AddLogging();
             builder.Services.AddSqLite(x => x.Path = Path.Combine(
                 FileSystem.AppDataDirectory,
-                "Database.db3"));
+                "Database.db3"),
+                isDevelopment: isDevelopment);
 
             Migrate(builder.Services);
 
             builder.Services.AddMauiBlazorWebView();
             builder.Services.AddMudServices();
             builder.Services.AddMudMarkdownServices();
-            builder.Services.AddScoped<TaskRunner>();
 
-#if DEBUG
-            builder.Services.AddBlazorWebViewDeveloperTools();
-            builder.Logging.AddDebug();
-#endif
+            if (isDevelopment)
+            {
+                builder.Services.AddBlazorWebViewDeveloperTools();
+                builder.Logging.AddDebug();
+            }
 
             return builder.Build();
         }
+
+        private static bool GetDebugEnvironment()
+            =>
+#if DEBUG
+                true;
+#else
+                false;
+#endif
 
         private static void Migrate(IServiceCollection serviceCollection)
         {

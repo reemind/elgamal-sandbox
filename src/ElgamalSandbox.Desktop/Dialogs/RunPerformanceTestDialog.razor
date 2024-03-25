@@ -1,0 +1,125 @@
+﻿@using ElgamalSandbox.Desktop.Services
+@using ElgamalSandbox.Core.Entities
+@using System.Diagnostics
+@inject TaskRunner TaskRunner
+@inject IDbContext DbContext
+
+<MudDialog>
+    <DialogContent>
+        @if (_isRunning || _isCompleted)
+        {
+            <MudStack Class="overflow-y-auto" Style="max-height: 70vh">
+                @foreach (var test in results)
+                {
+                   
+                    <div class="d-flex flex-grow-1 gap-4 align-center">
+                        <MudText>Значение: @test.Key</MudText>
+                        @if(test.Value.HasValue)
+                        {
+                            <MudChip Variant="Variant.Filled" Color="Color.Success">@test.Value</MudChip>
+                        }
+                        else
+                        {
+                            <MudChip Variant="Variant.Filled" Color="Color.Error">Ошибка</MudChip>
+                        }
+                    </div>
+                }
+                @if (_currentTest.HasValue)
+                {
+                    <div @key="_currentTest" class="d-flex flex-grow-1 gap-4 align-center">
+                        <MudProgressCircular Color="Color.Primary" Size="Size.Small" Indeterminate="true" />
+                        <MudText>Значение: @_currentTest</MudText>
+                        <TimerDiv>
+                            <MudChip Variant="Variant.Filled" Color="Color.Default">
+                                @($"{context:F1} сек")
+                            </MudChip>
+                        </TimerDiv>
+
+                    </div>
+                }
+
+            </MudStack>
+            @if (!_isCompleted)
+            {
+                <MudButton OnClick="Cancel" Disabled="@_cancellationTokenSource.IsCancellationRequested">
+                    @(_cancellationTokenSource.IsCancellationRequested ? "Завершаем..." : "Завершить")
+                </MudButton>
+            }
+        }
+        else
+        {
+            <MudStack>
+                <MudTextField T="int"
+                              Label="Начальное значение"
+                              Variant="Variant.Outlined"
+                              @bind-Value="_startValue"
+                              ></MudTextField>
+                <MudTextField T="int"
+                              Label="Конечное значение"
+                              Variant="Variant.Outlined"
+                              @bind-Value="_endValue"></MudTextField>
+            </MudStack>
+            <MudButton Class="mt-2" Variant="Variant.Outlined" OnClick="RunAsync">Запустить</MudButton>
+        }
+    </DialogContent>
+</MudDialog>
+
+@code {
+    private bool _isRunning;
+    private bool _isCompleted;
+    private CancellationTokenSource _cancellationTokenSource;
+    private Dictionary<long, TimeSpan?> results = new();
+    private long? _currentTest;
+    private Stopwatch _stopwatch = new();
+
+    int _startValue = 10;
+    int _endValue = 30;
+
+    [Parameter] public PerformanceTest PerformanceTest { get; set; }
+
+    [Parameter] public string Code { get; set; }
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    private async Task RunAsync(MouseEventArgs obj)
+    {
+        _stopwatch.Restart();
+        _cancellationTokenSource = new CancellationTokenSource();
+        var inputValues = Enumerable.Range(_startValue, _endValue - _startValue + 1)
+            .Select(x => (long) x)
+            .ToArray();
+        var attempt = new PerformanceTestAttempt()
+        {
+            PerformanceTest = PerformanceTest,
+            Runs = inputValues.ToDictionary(x => x, _ => default(TimeSpan?)),
+        };
+
+        _isRunning = true;
+        _currentTest = inputValues.First();
+
+        await TaskRunner.RunPerformanceTestAsync(
+            attempt,
+            (currentInputValue, currentResult, nextValue) =>
+            {
+                results.Add(currentInputValue, currentResult);
+                _currentTest = nextValue;
+                StateHasChanged();
+                _stopwatch.Restart();
+            },
+            _cancellationTokenSource.Token);
+
+        DbContext.PerformanceTestAttempts.Add(attempt);
+        await DbContext.SaveChangesAsync();
+        StateHasChanged();
+
+        _isRunning = false;
+        _isCompleted = true;
+        _currentTest = null;
+    }
+
+    private async Task Cancel(MouseEventArgs obj)
+    {
+        await _cancellationTokenSource.CancelAsync();
+    }
+
+}

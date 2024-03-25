@@ -14,15 +14,17 @@ namespace ElgamalSandbox.Data.SqLite
         /// </summary>
         /// <param name="services">Коллекция служб</param>
         /// <param name="optionsAction">Параметры подключения к SqLite</param>
+        /// <param name="isDevelopment">Разработка</param>
         /// <returns>Обновленная коллекция служб</returns>
         public static IServiceCollection AddSqLite(
             this IServiceCollection services,
-            Action<SqLiteDbOptions>? optionsAction)
+            Action<SqLiteDbOptions>? optionsAction,
+            bool isDevelopment = false)
         {
             var options = new SqLiteDbOptions();
             optionsAction?.Invoke(options);
 
-            return services.AddSqLite(options);
+            return services.AddSqLite(options, isDevelopment);
         }
 
         /// <summary>
@@ -30,10 +32,12 @@ namespace ElgamalSandbox.Data.SqLite
         /// </summary>
         /// <param name="services">Коллекция служб</param>
         /// <param name="options">Конфиг подключения к SqLite</param>
+        /// <param name="isDevelopment">Разработка</param>
         /// <returns>Обновленная коллекция служб</returns>
         public static IServiceCollection AddSqLite(
             this IServiceCollection services,
-            SqLiteDbOptions options)
+            SqLiteDbOptions options,
+            bool isDevelopment = false)
         {
             if (options == null)
                 throw new ArgumentNullException(nameof(options));
@@ -48,7 +52,9 @@ namespace ElgamalSandbox.Data.SqLite
                 opt.UseSqlite($"Data Source={options!.Path}");
                 opt.UseQueryTrackingBehavior(QueryTrackingBehavior.TrackAll);
                 opt.UseSnakeCaseNamingConvention();
-                opt.EnableSensitiveDataLogging();
+
+                if (isDevelopment)
+                    opt.EnableSensitiveDataLogging();
             });
 
             services.AddTransient<DbMigrator>();

@@ -1,5 +1,4 @@
 ﻿@page "/task/{taskId:long}"
-@using ElgamalSandbox.Core.Abstractions
 @using ElgamalSandbox.Core.Entities
 @using ElgamalSandbox.Core.Exceptions
 @using ElgamalSandbox.Components.Sandbox
@@ -22,7 +21,7 @@
 <div class="h100 d-flex flex-column">
     <div class="d-flex flex-row justify-space-between align-content-center">
         <MudBreadcrumbs Items="_items"></MudBreadcrumbs>
-        <MudLink Href="@($"/task/{TaskId}/attempts")">История</MudLink>
+        <MudLink Class="ma-2" Href="@($"/task/{TaskId}/attempts")">История</MudLink>
     </div>
 
     <div class="d-flex h100">
@@ -51,7 +50,7 @@
         _items =
         [
             new BreadcrumbItem("Tasks", href: "/tasks"),
-            new BreadcrumbItem(_task!.Name, href: null)
+            new BreadcrumbItem(_task!.Name, href: "#", disabled: true)
         ];
     }
 
@@ -108,31 +107,19 @@
     {
         _task.Playground = await _sandboxCanvas.SaveAsync();
         await DbContext.SaveChangesAsync();
-        Snackbar.Add("Saved", Severity.Success);
+        Snackbar.Add("Сохранено", Severity.Success);
     }
 
     private async Task<TaskAttempt?> RunDialog<TDialog>()
         where TDialog: ComponentBase
-    {
-        var dialog = await DialogService.ShowAsync<TDialog>(
+        => await DialogService.RunDialog<TDialog, TaskAttempt>(
             _task.Name,
             new DialogParameters()
-                {
+            {
                 {nameof(RunTaskDialog.TaskForRun), _task},
                 {nameof(RunTaskDialog.Code), await _sandboxCanvas.GenerateAsync()
                 }
-                },
-            new DialogOptions()
-                {
-                    MaxWidth = MaxWidth.Small,
-                    FullWidth = true,
-                    CloseButton = true,
-                });
-
-        return (await dialog.Result).Canceled
-            ? null
-            : await dialog.GetReturnValueAsync<TaskAttempt>();
-    }
+            });
 
     private async Task ShowDescriptionAsync(MouseEventArgs arg)
     {

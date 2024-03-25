@@ -51,8 +51,9 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="ChartJs.Blazor.Fork" Version="2.0.2" />
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
-        <PackageReference Include="MudBlazor" Version="6.12.0" />
+        <PackageReference Include="MudBlazor" Version="6.17.0" />
         <PackageReference Include="MudBlazor.Markdown" Version="0.1.3" />
     </ItemGroup>
 
@@ -60,6 +61,18 @@
       <ProjectReference Include="..\ElgamalSandbox.Components\ElgamalSandbox.Components.csproj" />
       <ProjectReference Include="..\ElgamalSandbox.Core\ElgamalSandbox.Core.csproj" />
       <ProjectReference Include="..\ElgamalSandbox.Data.Postgres\ElgamalSandbox.Data.SqLite.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Update="Microsoft.AspNetCore.Components.WebView.Maui" Version="8.0.7" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Update="Microsoft.Maui.Controls" Version="8.0.7" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Update="Microsoft.Maui.Controls.Compatibility" Version="8.0.7" />
     </ItemGroup>
 
 </Project>

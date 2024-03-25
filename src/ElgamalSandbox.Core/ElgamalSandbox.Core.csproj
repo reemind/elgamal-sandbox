@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -6,19 +6,29 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="Toolboxes\*" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Remove="Descriptions\**\*" />
+		<None Remove="Toolboxes\First.json" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="Toolboxes\*" />
-  </ItemGroup>
+	<ItemGroup>
+		<EmbeddedResource Include="Descriptions\**\*" />
+		<EmbeddedResource Include="Toolboxes\First.json" />
+	</ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MediatR" Version="12.2.0" />
+    <PackageReference Include="IronPython" Version="3.4.1" />
+    <PackageReference Include="IronPython.StdLib" Version="3.4.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="8.0.0" />
+  </ItemGroup>	
+
+  <ItemGroup>
+    <None Update="PythonModules\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,149 @@
+﻿@page "/benchmark"
+@using ElgamalSandbox.Core.Entities
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.Scripting.Utils
+@inject IDbContext DbContext
+@inject IDialogService DialogService
+
+<div class="d-flex pa-2" style="height: 100%;">
+    
+    <div style="width: 300px;" class="overflow-x-auto">
+        @foreach (var (performanceTest, index) in _performanceTests.Select((x, i) => (x, i)))
+        {
+            <MudPaper Outlined="true" Class="pa-2 ma-2">
+                <p>@performanceTest.TaskDescription.Name</p>
+                <MudSelect T="PerformanceTestAttempt" Placeholder="(не выбрано)" Clearable 
+                           ValueChanged="value => ValueChanged(index, value)">
+                    @foreach (var attempt in performanceTest.Attempts)
+                    {
+                        <MudSelectItem Value="@attempt">@attempt.Name</MudSelectItem>
+                    }
+                </MudSelect>
+                <MudButton Class="mt-2" Variant="Variant.Outlined" OnClick="() => CreateNewAsync(performanceTest)">Создать</MudButton>
+            </MudPaper>
+        }
+    </div>
+
+    <div style="height: 100%; width: 100%">
+        <Chart Config="@_config1" @ref="@_chart1"></Chart>
+    </div>
+</div>
+
+@code {
+    private LineConfig _config1;
+    private Chart _chart1;
+
+    private ChartOptions Options = new();
+
+    private List<PerformanceTest> _performanceTests = default!;
+
+    private readonly Dictionary<int, PerformanceTestAttempt> _attempts = new();
+
+    /// <inheritdoc />
+    protected override async Task OnInitializedAsync()
+    {
+        Options.LineStrokeWidth = 2;
+        Options.MaxNumYAxisTicks = 20;
+
+        _config1 = new LineConfig()
+        {
+            Options = new LineOptions
+            {
+                Responsive = true,
+                Tooltips = new Tooltips
+                {
+                    Mode = InteractionMode.Nearest,
+                    Intersect = true,
+                },
+                Hover = new Hover
+                {
+                    Mode = InteractionMode.Nearest,
+                    Intersect = true
+                },
+                Scales = new Scales
+                {
+                    XAxes = new List<CartesianAxis>
+                {
+                    new CategoryAxis
+                    {
+                        ScaleLabel = new ScaleLabel
+                        {
+                            LabelString = "Длина"
+                        }
+                    }
+                },
+                    YAxes = new List<CartesianAxis>
+                    {
+                        new LinearCartesianAxis
+                        {
+                            ScaleLabel = new ScaleLabel
+                            {
+                                LabelString = "Время"
+                            }
+                        }
+                    }
+                },
+            }
+        };
+
+        _performanceTests = await DbContext.PerformanceTests
+            .Include(x => x.Attempts)
+            .Include(x => x.TaskDescription)
+                .ThenInclude(x => x.Attempts)
+            .ToListAsync();
+    }
+
+    private void ValueChanged(int index, PerformanceTestAttempt? obj)
+    {
+        if (obj is not null)
+            _attempts.Add(index,obj);
+        else
+        {
+            _attempts.Remove(index);
+        }
+
+        UpdateChart();
+    }
+
+    private void UpdateChart()
+    {
+        var labels = _attempts
+            .Values
+            .SelectMany(x => x.Runs.Keys)
+            .Distinct()
+            .ToList();
+
+        _config1.Data.Labels.Clear();
+        _config1.Data.Labels.AddRange(labels.ConvertAll(x => x.ToString()));
+        _config1.Data.Datasets.Clear();
+
+        var getColor = () => $"#{Random.Shared.Next(0x1000000):X6}";
+
+        foreach (var attempt in _attempts.Values)
+        {
+            _config1.Data.Datasets.Add(new LineDataset<decimal?>(
+                labels.Select(x => 
+                        attempt.Runs.TryGetValue(x, out var value) 
+                        ? (decimal?)value?.TotalMilliseconds 
+                        : default)
+                    .ToList())
+                    {
+                        BorderColor = $"#{attempt.PerformanceTest.TaskDescription.Name.GetHashCode() % 0x1000000:X6}",
+                        Label = attempt.PerformanceTest.TaskDescription.Name,
+                    });
+        }
+
+        _chart1.Update();
+    }
+
+    private async Task CreateNewAsync(PerformanceTest performanceTest)
+    {
+        await DialogService.RunDialog<RunPerformanceTestDialog, object>(
+            performanceTest.TaskDescription.Name,
+            new DialogParameters()
+            {
+                {nameof(RunPerformanceTestDialog.PerformanceTest), performanceTest},
+            });
+    }
+
+}

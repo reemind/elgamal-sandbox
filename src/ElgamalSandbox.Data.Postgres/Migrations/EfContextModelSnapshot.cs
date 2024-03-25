@@ -19,6 +19,84 @@ namespace ElgamalSandbox.Data.SqLite.Migrations
                 .HasDefaultSchema("public")
                 .HasAnnotation("ProductVersion", "8.0.0");
 
+            modelBuilder.Entity("ElgamalSandbox.Core.Entities.PerformanceTest", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()")
+                        .HasComment("Время создания записи");
+
+                    b.Property<string>("PrepareScript")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("prepare_script");
+
+                    b.Property<long>("TaskDescriptionId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("task_description_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()")
+                        .HasComment("Время изменения записи");
+
+                    b.HasKey("Id")
+                        .HasName("pk_performance_tests");
+
+                    b.HasIndex("TaskDescriptionId")
+                        .HasDatabaseName("ix_performance_tests_task_description_id");
+
+                    b.ToTable("performance_tests", "public");
+                });
+
+            modelBuilder.Entity("ElgamalSandbox.Core.Entities.PerformanceTestAttempt", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()")
+                        .HasComment("Время создания записи");
+
+                    b.Property<long>("PerformanceTestId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("performance_test_id");
+
+                    b.Property<string>("Runs")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("runs");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()")
+                        .HasComment("Время изменения записи");
+
+                    b.HasKey("Id")
+                        .HasName("pk_performance_test_attempts");
+
+                    b.HasIndex("PerformanceTestId")
+                        .HasDatabaseName("ix_performance_test_attempts_performance_test_id");
+
+                    b.ToTable("performance_test_attempts", "public");
+                });
+
             modelBuilder.Entity("ElgamalSandbox.Core.Entities.TaskAttempt", b =>
                 {
                     b.Property<long>("Id")
@@ -206,6 +284,30 @@ namespace ElgamalSandbox.Data.SqLite.Migrations
                     b.ToTable("task_test_attempt_relation", "public");
                 });
 
+            modelBuilder.Entity("ElgamalSandbox.Core.Entities.PerformanceTest", b =>
+                {
+                    b.HasOne("ElgamalSandbox.Core.Entities.TaskDescription", "TaskDescription")
+                        .WithMany("PerformanceTests")
+                        .HasForeignKey("TaskDescriptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_performance_tests_task_descriptions_task_description_id");
+
+                    b.Navigation("TaskDescription");
+                });
+
+            modelBuilder.Entity("ElgamalSandbox.Core.Entities.PerformanceTestAttempt", b =>
+                {
+                    b.HasOne("ElgamalSandbox.Core.Entities.PerformanceTest", "PerformanceTest")
+                        .WithMany("Attempts")
+                        .HasForeignKey("PerformanceTestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_performance_test_attempts_performance_tests_performance_test_id");
+
+                    b.Navigation("PerformanceTest");
+                });
+
             modelBuilder.Entity("ElgamalSandbox.Core.Entities.TaskAttempt", b =>
                 {
                     b.HasOne("ElgamalSandbox.Core.Entities.TaskDescription", "TaskDescription")
@@ -251,6 +353,11 @@ namespace ElgamalSandbox.Data.SqLite.Migrations
                     b.Navigation("Test");
                 });
 
+            modelBuilder.Entity("ElgamalSandbox.Core.Entities.PerformanceTest", b =>
+                {
+                    b.Navigation("Attempts");
+                });
+
             modelBuilder.Entity("ElgamalSandbox.Core.Entities.TaskAttempt", b =>
                 {
                     b.Navigation("Tests");
@@ -259,6 +366,8 @@ namespace ElgamalSandbox.Data.SqLite.Migrations
             modelBuilder.Entity("ElgamalSandbox.Core.Entities.TaskDescription", b =>
                 {
                     b.Navigation("Attempts");
+
+                    b.Navigation("PerformanceTests");
 
                     b.Navigation("Tests");
                 });

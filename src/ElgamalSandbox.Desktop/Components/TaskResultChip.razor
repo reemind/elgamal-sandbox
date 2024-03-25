@@ -1,6 +1,6 @@
 ﻿@using ElgamalSandbox.Core.Entities
 
-@if (TaskDescription.Attempts.Any(x => x.IsPassedTests))
+@if (TaskDescription.Attempts.Any(x => x is {IsPassedTests: true, IsSucceeded: true}))
 {
     <MudChip Variant="Variant.Filled" Color="Color.Success">Решена</MudChip>
 }

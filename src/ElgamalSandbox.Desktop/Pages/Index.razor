@@ -1,6 +1,8 @@
 ﻿@page "/"
 @using ElgamalSandbox.Core.Abstractions
 @using ElgamalSandbox.Core.Entities
+@using ElgamalSandbox.Core.Enums
+@using ChartType = MudBlazor.ChartType
 @inject IDbContext DbContext
 
 <MudPaper Class="pa-4 ma-4 d-flex justify-center">
@@ -19,8 +21,8 @@
 @code
 {
     int dataSize = 4;
-    public double[] data;
-    public string[] labels = { "Решено", "Начато", "Не решено" };
+    private double[] data;
+    private string[] labels = ["Решено", "Начато", "Не решено"];
 
     /// <inheritdoc />
     protected override Task OnInitializedAsync()
@@ -29,17 +31,18 @@
             .Select(x => new
             {
                 Solved = x.Attempts.Any(x => 
-                    x.IsSucceeded
+                    x.Type == AttemptTypes.Test
+                    && x.IsSucceeded
                     && x.Tests.All(x => x.Result == TestResult.Success)),
                 HasAttempts = x.Attempts.Any() || x.Playground != null
             });
 
-        data = new double[]
-        {
+        data =
+        [
             stats.Count(x => x.Solved),
             stats.Count(x => x.HasAttempts && !x.Solved),
             stats.Count(x => !x.HasAttempts)
-        };
+        ];
 
         return base.OnInitializedAsync();
     }

@@ -4,10 +4,11 @@ using ElgamalSandbox.Core.Enums;
 using IronPython.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Scripting.Hosting;
+using System.Diagnostics;
 
 namespace ElgamalSandbox.Desktop.Services
 {
-    internal class TaskRunner
+    public class TaskRunner
     {
         private readonly IDbContext _dbContext;
         private readonly ILogger<TaskRunner> _logger;
@@ -20,15 +21,19 @@ namespace ElgamalSandbox.Desktop.Services
             _dbContext = dbContext;
             _logger = logger;
             _engine = Python.CreateEngine();
+
+            var paths = _engine.GetSearchPaths()
+                .Append(Path.Combine(
+                    AppDomain.CurrentDomain.BaseDirectory,
+                    "PythonModules"))
+                .ToList();
+
+            _engine.SetSearchPaths(paths);
         }
 
         public async Task RunAsync(TaskAttempt taskAttempt)
         {
-            var code = taskAttempt.TaskDescription.InputVars
-                .Aggregate(
-                    taskAttempt.Code,
-                    (acc, cur) =>
-                        acc.Replace($"{cur} = None\n", ""));
+            var code = PrepareScript(taskAttempt);
 
             try
             {
@@ -63,6 +68,15 @@ namespace ElgamalSandbox.Desktop.Services
             await _dbContext.SaveChangesAsync();
         }
 
+        private static string PrepareScript(TaskAttempt taskAttempt)
+        {
+            return taskAttempt.TaskDescription.InputVars
+                .Aggregate(
+                    taskAttempt.Code,
+                    (acc, cur) =>
+                        acc.Replace($"{cur} = None\n", ""));
+        }
+
         private void RunTests(TaskAttempt taskAttempt, string code)
         {
             var lastResult = TestResult.Success;
@@ -93,7 +107,73 @@ namespace ElgamalSandbox.Desktop.Services
             taskAttempt.Result = "";
         }
 
-        private IEnumerable<(string Name, dynamic Value)> RunCode(TaskAttempt taskAttempt, Dictionary<string, string> parameters, string code)
+        public async Task RunPerformanceTestAsync(
+            PerformanceTestAttempt test,
+            Action<long, TimeSpan?, long?> callback,
+            CancellationToken cancellationToken = default)
+        {
+            var prepareScript = test.PerformanceTest.PrepareScript;
+
+            var attempt = test.PerformanceTest.TaskDescription.Attempts
+                .Where(x => x.IsSucceeded)
+                .MinBy(x => x.CreatedAt)
+                ?? throw new ApplicationException("Удачный запуск скрипта не найден");
+            var code = PrepareScript(attempt);
+
+            var runs = test.Runs.ToList();
+
+            for (var index = 0; index < runs.Count; index++)
+            {
+                var value = runs[index].Key;
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    test.Runs[value] = default;
+                    callback(
+                        value,
+                        test.Runs[value],
+                        runs.Cast<KeyValuePair<long, TimeSpan?>?>().ElementAtOrDefault(index + 1)?.Key);
+                    continue;
+                }
+
+                var stopWatch = new Stopwatch();
+
+                try
+                {
+                    var scope = _engine.CreateScope();
+
+                    await Task.Run(() =>
+                        {
+                            scope.SetVariable("input_value", value);
+                            _engine.Execute(prepareScript, scope);
+                            stopWatch.Restart();
+                            cancellationToken.ThrowIfCancellationRequested();
+                            Thread.Sleep(Random.Shared.Next(100, 5000));
+                            _engine.Execute(code);
+                        },
+                        cancellationToken);
+
+                    stopWatch.Stop();
+
+                    test.Runs[value] = stopWatch.Elapsed;
+                }
+                catch (Exception e)
+                {
+                    _logger.LogWarning(e, "Ошибка выполнения скрипта");
+                }
+                finally
+                {
+                    callback(
+                        value,
+                        test.Runs[value],
+                        runs.Cast<KeyValuePair<long, TimeSpan?>?>().ElementAtOrDefault(index + 1)?.Key);
+                }
+            }
+        }
+
+        private IEnumerable<(string Name, dynamic Value)> RunCode(
+            TaskAttempt taskAttempt,
+            Dictionary<string, string> parameters,
+            string code)
         {
             var scope = _engine.CreateScope();
             foreach (var taskAttemptParameter in parameters)

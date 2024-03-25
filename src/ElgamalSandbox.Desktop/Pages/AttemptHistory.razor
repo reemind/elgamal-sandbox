@@ -21,12 +21,16 @@
             @context.TestPassed
         </MudTd>
         <MudTd DataLabel="Инфо">
-            <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => ShowBtnPress(context.Id))">@((context.ShowDetails == true) ? "Скрыть" : "Показать") код</MudButton>
-            <MudButton>Показать результат</MudButton>
+            <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => ShowBtnPressCode(context.Id))">@(context.ShowCode ? "Скрыть" : "Показать") код</MudButton>
+            
+            @if (context.Type == AttemptTypes.Typical)
+            {
+                <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => ShowBtnPressResult(context.Id))">@(context.ShowResult ? "Скрыть" : "Показать") результат</MudButton>
+            }
         </MudTd>
     </RowTemplate>
     <ChildRowContent>
-        @if (context.ShowDetails)
+        @if (context.ShowCode)
         {
             <MudTr>
             <td colspan="4">
@@ -34,6 +38,17 @@
                     <MudMarkdown Value="@($"```python\n{@context.Code}\n```")" CodeBlockTheme="CodeBlockTheme.GithubDark"></MudMarkdown>
                 </MudCard>
             </td>
+            </MudTr>
+        }
+        
+        @if (context is {Type: AttemptTypes.Typical, ShowResult: true})
+        {
+            <MudTr>
+                <td colspan="4">
+                    <MudCard >
+                        <MudMarkdown Value="@($"```\n{@context.Result}\n```")" CodeBlockTheme="CodeBlockTheme.GithubDark"></MudMarkdown>
+                    </MudCard>
+                </td>
             </MudTr>
         }
     </ChildRowContent>
@@ -52,40 +67,51 @@
     {
         _task = await DbContext.TaskDescriptions
                     .Include(x => x.Attempts)
-                    .ThenInclude(x => x.Tests)
+                        .ThenInclude(x => x.Tests)
                     .Include(x => x.Tests)
                     .FirstOrDefaultAsync(x => x.Id.ToString() == TaskId.ToString())
                 ?? throw new EntityNotFoundException<TaskDescription>(TaskId);
 
         _elements = _task.Attempts
+            .OrderByDescending(x => x.CreatedAt)
             .Select(x => new Item(
                 x.Id,
                 x.Code,
                 x.IsSucceeded,
                 x.Type,
                 x.CreatedAt,
-                x.Type == Core.Enums.AttemptTypes.Test
+                x.Type == AttemptTypes.Test
                     ? $"{x.Tests.Count(x => x.Result == TestResult.Success)} из {x.Tests.Count}"
-                    : ""))
+                    : "",
+                x.Result))
             .ToList();
 
         _items =
         [
             new BreadcrumbItem("Tasks", href: "/tasks"),
-            new BreadcrumbItem(_task!.Name, href: null)
+            new BreadcrumbItem(_task.Name, href: $"/task/{TaskId}")
         ];
 
     }
 
-    private void ShowBtnPress(long id)
+    private void ShowBtnPressCode(long id)
     {
         var item = _elements.First(f => f.Id == id);
-        item.ShowDetails = !item.ShowDetails;
+        item.ShowCode = !item.ShowCode;
+        item.ShowResult = false;
     }
 
-    record Item(long Id, string Code, bool IsSuccessful, AttemptTypes Type, DateTime RunDate, string TestPassed)
+    private void ShowBtnPressResult(long id)
     {
-        public bool ShowDetails { get; set; }
+        var item = _elements.First(f => f.Id == id);
+        item.ShowResult = !item.ShowResult;
+        item.ShowCode = false;
+    }
+
+    record Item(long Id, string Code, bool IsSuccessful, AttemptTypes Type, DateTime RunDate, string TestPassed, string Result)
+    {
+        public bool ShowCode { get; set; }
+        public bool ShowResult { get; set; }
     };
 
 }

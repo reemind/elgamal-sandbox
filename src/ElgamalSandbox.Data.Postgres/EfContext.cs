@@ -43,6 +43,12 @@ namespace ElgamalSandbox.Data.SqLite
         /// <inheritdoc />
         public DbSet<TaskAttempt> TaskAttempts { get; set; }
 
+        /// <inheritdoc />
+        public DbSet<PerformanceTest> PerformanceTests { get; set; }
+
+        /// <inheritdoc />
+        public DbSet<PerformanceTestAttempt> PerformanceTestAttempts { get; set; }
+
         /// <inheritdoc/>
         public bool IsInMemory => Database.IsInMemory();
 
