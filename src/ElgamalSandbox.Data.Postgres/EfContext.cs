@@ -44,6 +44,12 @@ namespace ElgamalSandbox.Data.SqLite
         public DbSet<TaskAttempt> TaskAttempts { get; set; }
 
         /// <inheritdoc />
+        public DbSet<TaskTest> TaskTests { get; set; }
+
+        /// <inheritdoc />
+        public DbSet<TaskTestAttemptRelation> TaskTestAttemptRelations { get; set; }
+
+        /// <inheritdoc />
         public DbSet<PerformanceTest> PerformanceTests { get; set; }
 
         /// <inheritdoc />

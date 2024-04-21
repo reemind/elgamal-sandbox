@@ -1,5 +1,6 @@
 ﻿using ElgamalSandbox.Core;
 using ElgamalSandbox.Data.SqLite;
+using ElgamalSandbox.Desktop.Services;
 using Microsoft.Extensions.Logging;
 using MudBlazor;
 using MudBlazor.Services;
@@ -29,6 +30,7 @@ namespace ElgamalSandbox.Desktop
             builder.Services.AddMauiBlazorWebView();
             builder.Services.AddMudServices();
             builder.Services.AddMudMarkdownServices();
+            builder.Services.AddScoped<ExceptionHandler>();
 
             if (isDevelopment)
             {

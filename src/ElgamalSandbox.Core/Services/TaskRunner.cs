@@ -1,15 +1,19 @@
 ﻿using ElgamalSandbox.Core.Abstractions;
 using ElgamalSandbox.Core.Entities;
 using ElgamalSandbox.Core.Enums;
+using ElgamalSandbox.Core.Exceptions;
 using IronPython.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Scripting.Hosting;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
-namespace ElgamalSandbox.Desktop.Services
+namespace ElgamalSandbox.Core.Services
 {
     public class TaskRunner
     {
+        private const int AttemptsMaxCount = 5;
+
         private readonly IDbContext _dbContext;
         private readonly ILogger<TaskRunner> _logger;
         private readonly ScriptEngine _engine;
@@ -68,13 +72,22 @@ namespace ElgamalSandbox.Desktop.Services
             await _dbContext.SaveChangesAsync();
         }
 
+        public static string PrepareScriptForDisplay(string code)
+        {
+            return new Regex(
+                @"^ +global[\w\d ,]+$\n",
+                RegexOptions.Compiled | RegexOptions.Multiline)
+                .Replace(code, "");
+        }
+
         private static string PrepareScript(TaskAttempt taskAttempt)
         {
-            return taskAttempt.TaskDescription.InputVars
-                .Aggregate(
-                    taskAttempt.Code,
-                    (acc, cur) =>
-                        acc.Replace($"{cur} = None\n", ""));
+            return PrepareScriptForDisplay(
+                taskAttempt.TaskDescription.InputVars
+                    .Aggregate(
+                        taskAttempt.Code,
+                        (acc, cur) =>
+                            acc.Replace($"{cur} = None\n", "")));
         }
 
         private void RunTests(TaskAttempt taskAttempt, string code)
@@ -109,15 +122,15 @@ namespace ElgamalSandbox.Desktop.Services
 
         public async Task RunPerformanceTestAsync(
             PerformanceTestAttempt test,
-            Action<long, TimeSpan?, long?> callback,
+            Action<long, TimeSpan?, long?, int> callback,
             CancellationToken cancellationToken = default)
         {
             var prepareScript = test.PerformanceTest.PrepareScript;
 
             var attempt = test.PerformanceTest.TaskDescription.Attempts
                 .Where(x => x.IsSucceeded)
-                .MinBy(x => x.CreatedAt)
-                ?? throw new ApplicationException("Удачный запуск скрипта не найден");
+                .MaxBy(x => x.CreatedAt)
+                ?? throw new ApplicationExceptionBase("Удачный запуск скрипта не найден");
             var code = PrepareScript(attempt);
 
             var runs = test.Runs.ToList();
@@ -131,30 +144,36 @@ namespace ElgamalSandbox.Desktop.Services
                     callback(
                         value,
                         test.Runs[value],
-                        runs.Cast<KeyValuePair<long, TimeSpan?>?>().ElementAtOrDefault(index + 1)?.Key);
+                        runs.Cast<KeyValuePair<long, TimeSpan?>?>().ElementAtOrDefault(index + 1)?.Key,
+                        default);
                     continue;
                 }
 
                 var stopWatch = new Stopwatch();
+                var elapsedSum = TimeSpan.Zero;
+                int runAttempt = 0;
 
                 try
                 {
-                    var scope = _engine.CreateScope();
+                    for (runAttempt = 0; elapsedSum < TimeSpan.FromMinutes(1) && runAttempt < AttemptsMaxCount; runAttempt++)
+                    {
+                        await Task.Run(() =>
+                            {
+                                var scope = _engine.CreateScope();
+                                scope.SetVariable("input_value", value);
+                                _engine.Execute(prepareScript, scope);
+                                stopWatch.Restart();
+                                cancellationToken.ThrowIfCancellationRequested();
+                                _engine.Execute(code, scope);
+                                stopWatch.Stop();
+                            },
+                            cancellationToken);
 
-                    await Task.Run(() =>
-                        {
-                            scope.SetVariable("input_value", value);
-                            _engine.Execute(prepareScript, scope);
-                            stopWatch.Restart();
-                            cancellationToken.ThrowIfCancellationRequested();
-                            Thread.Sleep(Random.Shared.Next(100, 5000));
-                            _engine.Execute(code);
-                        },
-                        cancellationToken);
+                        elapsedSum += stopWatch.Elapsed;
+                    }
 
-                    stopWatch.Stop();
 
-                    test.Runs[value] = stopWatch.Elapsed;
+                    test.Runs[value] = elapsedSum / runAttempt;
                 }
                 catch (Exception e)
                 {
@@ -165,7 +184,8 @@ namespace ElgamalSandbox.Desktop.Services
                     callback(
                         value,
                         test.Runs[value],
-                        runs.Cast<KeyValuePair<long, TimeSpan?>?>().ElementAtOrDefault(index + 1)?.Key);
+                        runs.Cast<KeyValuePair<long, TimeSpan?>?>().ElementAtOrDefault(index + 1)?.Key,
+                        runAttempt);
                 }
             }
         }

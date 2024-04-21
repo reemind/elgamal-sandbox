@@ -1,6 +1,7 @@
 ﻿using ElgamalSandbox.Core.Abstractions;
 using ElgamalSandbox.Core.Entities;
-using Microsoft.EntityFrameworkCore;
+using ElgamalSandbox.Core.Extensions;
+using ElgamalSandbox.Core.Models;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -9,6 +10,7 @@ namespace ElgamalSandbox.Core.Services;
 
 public class DbSeeder : IDbSeeder
 {
+    private static readonly Assembly Assembly = Assembly.GetAssembly(typeof(DbSeeder))!;
     private readonly IDbContext _dbContext;
 
     public DbSeeder(IDbContext dbContext)
@@ -19,159 +21,265 @@ public class DbSeeder : IDbSeeder
     /// <inheritdoc />
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
+        var number = new AutoCounter<int>(1);
+        var taskTestIdCounter = new AutoCounter<long>(1);
+        var performanceTestIdCounter = new AutoCounter<long>(1);
+        var prepareScript = """
+                            import struct
+                            import random
+                            from Crypto.Util import number
+
+                            def generate_prime_number(bits):
+                                return number.getPrime(bits)
+
+                            def generate_key_pair(bits):
+                                p = generate_prime_number(bits)
+                                g = random.randint(2, p - 1)
+                                x = random.randint(2, p - 2)
+                                y = pow(g, x, p)
+                                return (p, g, y), x
+
+                            # Генерация ключей с заданной длиной
+                            (n, a, y), _ = generate_key_pair(input_value)
+
+                            """;
+
         // 1
         await InsertTaskAsync(
-            number: 1,
+            number: number,
             name: "Реализовать дискретный логарифм по модулю в блочном виде",
-            inputVars: new[] { "y", "a", "n" },
-            outputVars: new[] { "x" },
+            inputVars: ["x", "a", "n"],
+            outputVars: ["y"],
             "First",
             "First",
+            testIdCounter: taskTestIdCounter,
+            performanceTestIdCounter: performanceTestIdCounter,
             tests: [
-                new TaskTest()
-                {
-                    InputVars = new Dictionary<string, string>
+                new TestModel(
+                    InputVars: new
                     {
-                        { "y", "1" }, { "a", "1" }, { "n", "1" }
+                        x = 1106,
+                        a = 456456,
+                        n = 43234,
                     },
-                    OutputVars = new Dictionary<string, string>
+                    OutputVars: new
                     {
-                        { "x", "8" },
-                    },
-                }
+                        x = 6642,
+                    }),
             ]);
 
         // 2
         await InsertTaskAsync(
-            number: 2,
-            name: "Разработать блочную программу для генерации ключей",
-            inputVars: new[] { "y", "a", "n" },
-            outputVars: new[] { "x" },
+            number: number,
+            name: "Разработать блочную программу для генерации простого числа заданной длины",
+            inputVars: ["n"],
+            outputVars: ["is_prime"],
             "First",
             "Second",
+            testIdCounter: taskTestIdCounter,
+            performanceTestIdCounter: performanceTestIdCounter,
             tests: [
-                new TaskTest()
-                {
-                    InputVars = new Dictionary<string, string>
+                new TestModel(
+                    InputVars: new
                     {
-                        { "y", "1" }, { "a", "1" }, { "n", "1" }
+                        y = 1,
+                        a = 1,
+                        n = 1,
                     },
-                    OutputVars = new Dictionary<string, string>
+                    OutputVars: new
                     {
-                        { "x", "8" },
-                    },
-                }
+                        x = 8,
+                    }),
             ]);
 
         // 3
         await InsertTaskAsync(
-            number: 3,
-            name: "Реализация шифрования ElGamal с использованием ключей",
-            inputVars: new[] { "y", "a", "n" },
-            outputVars: new[] { "x" },
+            number: number,
+            name: "Разработать блочную программу для генерации ключей",
+            inputVars: ["y", "a", "n"],
+            outputVars: ["x"],
             "First",
-            "Third",
+            "Second",
+            testIdCounter: taskTestIdCounter,
+            performanceTestIdCounter: performanceTestIdCounter,
             tests: [
-                new TaskTest()
-                {
-                    InputVars = new Dictionary<string, string>
+                new TestModel(
+                    InputVars: new
                     {
-                        { "y", "1" }, { "a", "1" }, { "n", "1" }
+                        y = 1,
+                        a = 1,
+                        n = 1,
                     },
-                    OutputVars = new Dictionary<string, string>
+                    OutputVars: new
                     {
-                        { "x", "8" },
-                    },
-                }
+                        x = 8,
+                    }),
             ]);
 
         // 4
         await InsertTaskAsync(
-            number: 4,
-            name: "Реализация дискретного логарифма по модулю грубой силы в блочном виде",
-            inputVars: new[] { "y", "a", "n" },
-            outputVars: new[] { "x" },
+            number: number,
+            name: "Реализация шифрования ElGamal с использованием ключей",
+            inputVars: ["y", "a", "n"],
+            outputVars: ["x"],
             "First",
-            "Second",
+            "Third",
+            testIdCounter: taskTestIdCounter,
+            performanceTestIdCounter: performanceTestIdCounter,
             tests: [
-                new TaskTest()
-                {
-                    InputVars = new Dictionary<string, string>
+                new TestModel(
+                    InputVars: new
                     {
-                        { "y", "1" }, { "a", "1" }, { "n", "1" }
+                        y = 1,
+                        a = 1,
+                        n = 1,
                     },
-                    OutputVars = new Dictionary<string, string>
+                    OutputVars: new
                     {
-                        { "x", "8" },
+                        x = 8,
+                    }),
+            ]);
+
+        // 5
+        await InsertTaskAsync(
+            number: number,
+            name: "Реализация дискретного логарифма по модулю методом грубой силы в блочном виде",
+            inputVars: ["y", "a", "n"],
+            outputVars: ["x"],
+            "First",
+            "Fourth",
+            testIdCounter: taskTestIdCounter,
+            performanceTestIdCounter: performanceTestIdCounter,
+            tests: [
+                new TestModel(
+                    InputVars: new
+                    {
+                        y = 6642,
+                        a = 456456,
+                        n = 43234,
                     },
-                }
+                    OutputVars: new
+                    {
+                        x = 1106,
+                    }),
+                new TestModel(
+                    InputVars: new
+                    {
+                        y = 863,
+                        a = 789012,
+                        n = 34567,
+                    },
+                    OutputVars: new
+                    {
+                        x = 34566,
+                    }),
+
+                new TestModel(
+                    InputVars: new
+                    {
+                        y = 987654,
+                        a = 567890,
+                        n = 12345,
+                    },
+                    OutputVars: new
+                    {
+                        x = 12344,
+                    }),
+
+                new TestModel(
+                    InputVars: new
+                    {
+                        y = 876543,
+                        a = 345678,
+                        n = 23456,
+                    },
+                    OutputVars: new
+                    {
+                        x = 23455,
+                    }),
+
+                new TestModel(
+                    InputVars: new
+                    {
+                        y = 654321,
+                        a = 210987,
+                        n = 54321,
+                    },
+                    OutputVars: new
+                    {
+                        x = 54320,
+                    }),
+
+                new TestModel(
+                    InputVars: new
+                    {
+                        y = 543210,
+                        a = 109876,
+                        n = 65432,
+                    },
+                    OutputVars: new
+                    {
+                        x = 65431,
+                    })
+
             ],
             performanceTests: [
-                new PerformanceTest()
-                {
-                    PrepareScript = """
-                                    import struct
-                                    import random
-                                    from Crypto.Util import number
-                                    
-                                    def generate_prime_number(bits):
-                                        return number.getPrime(bits)
-                                    
-                                    def generate_key_pair(bits):
-                                        p = generate_prime_number(bits)
-                                        g = random.randint(2, p - 1)
-                                        x = random.randint(2, p - 2)
-                                        y = pow(g, x, p)
-                                        return (p, g, y), x
-                                    
-                                    # Генерация ключей с заданной длиной
-                                    (n, a, y), _ = generate_key_pair(input_value)
-                                    
-                                    """
-                }
+                new PerformanceTest(prepareScript)
                 ]);
 
+        // 6
         await InsertTaskAsync(
-            number: 5,
+            number: number,
             name: "Реализация дискретного логарифма по модулю с использованием алгоритма \"Шаг младенца - шаг гиганта\"",
-            inputVars: new[] { "g", "a", "p" },
-            outputVars: new[] { "x" },
+            inputVars: ["y", "a", "n"],
+            outputVars: ["x"],
             "First",
             description: "Fifth",
+            testIdCounter: taskTestIdCounter,
+            performanceTestIdCounter: performanceTestIdCounter,
             tests: [
-                new TaskTest()
-                {
-                    InputVars = new Dictionary<string, string>
+                new TestModel(
+                    InputVars: new
                     {
-                        { "g", "2" }, { "a", "16190" }, { "p", "30803" }
+                        y = 3,
+                        a = 5,
+                        n = 2017,
                     },
-                    OutputVars = new Dictionary<string, string>
+                    OutputVars: new
                     {
-                        { "x", "12345" },
-                    },
-                }
+                        x = 1030,
+                    }),
+            ],
+            performanceTests: [
+                new PerformanceTest(prepareScript),
             ]);
 
 
+        // 7
         await InsertTaskAsync(
-            number: 6,
+            number: number,
             name: "Разработать блочную программу для нахождения дискретного логарифма по модулю с использованием алгоритма Полига-Хеллмана",
-            inputVars: new[] { "g", "a", "p" },
-            outputVars: new[] { "x" },
+            inputVars: ["y", "a", "n"],
+            outputVars: ["x"],
             "First",
             description: "Sixth",
+            testIdCounter: taskTestIdCounter,
+            performanceTestIdCounter: performanceTestIdCounter,
             tests: [
-                new TaskTest()
-                {
-                    InputVars = new Dictionary<string, string>
+                new TestModel(
+                    InputVars: new
                     {
-                        { "g", "2" }, { "a", "16190" }, { "p", "30803" }
+                        y = 3,
+                        a = 5,
+                        n = 2017,
                     },
-                    OutputVars = new Dictionary<string, string>
+                    OutputVars: new
                     {
-                        { "x", "12345" },
-                    },
-                }
+                        x = 1030,
+                    }),
+            ],
+            performanceTests: [
+                new PerformanceTest(prepareScript),
             ]);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
@@ -184,39 +292,54 @@ public class DbSeeder : IDbSeeder
         string[] outputVars,
         string toolboxFileName,
         string description,
-        List<TaskTest> tests,
+        AutoCounter<long> testIdCounter,
+        AutoCounter<long> performanceTestIdCounter,
+        List<TestModel> tests,
         List<PerformanceTest>? performanceTests = null)
     {
-        var task = _dbContext.TaskDescriptions
-            .Include(x => x.Tests)
-            .Include(x => x.PerformanceTests)
-            .FirstOrDefault(x => x.Number == number);
+        var task = new TaskDescription
+        {
+            Id = number,
+            Number = number,
+            Name = name,
+            Description = await new StreamReader(
+                    GetStream($"ElgamalSandbox.Core.Descriptions.{description}.md"))
+                .ReadToEndAsync(),
+            InputVars = inputVars,
+            OutputVars = outputVars,
+            Toolbox = (await JsonSerializer.DeserializeAsync<JsonObject>(
+                GetStream($"ElgamalSandbox.Core.Toolboxes.{toolboxFileName}.json")))!,
+        };
 
-        if (task == null)
-            _dbContext.TaskDescriptions.Add(task = new TaskDescription());
+        await _dbContext.TaskDescriptions.MutateAsync(task);
 
-        var assembly = Assembly.GetAssembly(typeof(DbSeeder));
-
-        task.Number = number;
-        task.Name = name;
-        task.Description = await new StreamReader(
-                assembly.GetManifestResourceStream($"ElgamalSandbox.Core.Descriptions.{description}.md"))
-            .ReadToEndAsync();
-        task.InputVars = inputVars;
-        task.OutputVars = outputVars;
-
-
-        var stream = assembly
-            .GetManifestResourceStream($"ElgamalSandbox.Core.Toolboxes.{toolboxFileName}.json");
-
-        task.Toolbox = await JsonSerializer.DeserializeAsync<JsonObject>(stream);
-
-        //task.Tests = tests;
+        await _dbContext.TaskTests.MutateAsync(
+            tests.Select(x => new TaskTest()
+            {
+                Id = testIdCounter,
+                Task = task,
+                InputVars = ToPropertiesDictionary(x.InputVars),
+                OutputVars = ToPropertiesDictionary(x.OutputVars)
+            }));
 
         if (performanceTests is not null)
         {
-            task.PerformanceTests.Clear();
-            task.PerformanceTests.AddRange(performanceTests);
+            performanceTests.ForEach(x =>
+            {
+                x.Id = performanceTestIdCounter;
+                x.TaskDescription = task;
+            });
+            await _dbContext.PerformanceTests.MutateAsync(performanceTests);
         }
     }
+
+    private Dictionary<string, string> ToPropertiesDictionary(object instance)
+        => instance.GetType()
+            .GetProperties()
+            .ToDictionary(x => x.Name, x => x.GetValue(instance)!.ToString()!);
+
+    private Stream GetStream(string fileName)
+        => Assembly.GetManifestResourceStream(fileName)!;
+
+    private record TestModel(object InputVars, object OutputVars);
 }

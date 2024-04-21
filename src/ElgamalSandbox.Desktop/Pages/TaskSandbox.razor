@@ -12,15 +12,28 @@
     <MudIconButton Class="ml-2" Edge="Edge.Start" Color="Color.Inherit" Icon="@Icons.Material.Filled.PlayArrow" OnClick="@RunAsync"></MudIconButton>
     <MudIconButton Class="ml-2" Edge="Edge.Start" Color="Color.Inherit" Icon="@Icons.Material.Filled.Science" OnClick="@RunTestsAsync"></MudIconButton>
     <MudSpacer/>
+    Входные параметры:
+    @foreach (var item in _task.InputVars)
+    {
+        <MudChip Label="true" Color="Color.Info">@item</MudChip>
+    }
+    <MudSpacer />
     <TaskResultChip TaskDescription="@_task"></TaskResultChip>
     <MudSpacer/>
+    Выходные параметры:
+    @foreach (var item in _task.OutputVars)
+    {
+        <MudChip Label="true" Color="Color.Info">@item</MudChip>
+    }
+    <MudSpacer />
     <MudIconButton Class="ml-2" Edge="Edge.End" Color="Color.Inherit" Icon="@Icons.Material.Filled.Description" OnClick="@ShowCodeAsync"></MudIconButton>
     <MudIconButton Class="ml-2" Edge="Edge.End" Color="Color.Inherit" Icon="@Icons.Material.Filled.Help" OnClick="@ShowDescriptionAsync"></MudIconButton>
 </SectionContent>
 
 <div class="h100 d-flex flex-column">
-    <div class="d-flex flex-row justify-space-between align-content-center">
+    <div class="d-flex flex-row justify-space-between align-center">
         <MudBreadcrumbs Items="_items"></MudBreadcrumbs>
+        <MudSpacer></MudSpacer>
         <MudLink Class="ma-2" Href="@($"/task/{TaskId}/attempts")">История</MudLink>
     </div>
 
@@ -117,8 +130,7 @@
             new DialogParameters()
             {
                 {nameof(RunTaskDialog.TaskForRun), _task},
-                {nameof(RunTaskDialog.Code), await _sandboxCanvas.GenerateAsync()
-                }
+                {nameof(RunTaskDialog.Code), await _sandboxCanvas.GenerateAsync()}
             });
 
     private async Task ShowDescriptionAsync(MouseEventArgs arg)

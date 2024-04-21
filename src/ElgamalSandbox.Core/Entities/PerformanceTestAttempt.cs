@@ -1,4 +1,5 @@
 ﻿using ElgamalSandbox.Core.Exceptions;
+using ElgamalSandbox.Core.Extensions;
 
 namespace ElgamalSandbox.Core.Entities;
 
@@ -8,15 +9,11 @@ public class PerformanceTestAttempt : EntityBase
 
     private PerformanceTest _performanceTest;
 
-    public PerformanceTestAttempt()
-    {
-    }
-
     public Dictionary<long, TimeSpan?> Runs { get; set; }
 
-    public long PerformanceTestId { get; set; }
+    public long PerformanceTestId { get; private set; }
 
-    public string Name => $"{CreatedAt:dd.MM.yyyy hh:mm}";
+    public string Name => CreatedAt.ToLocalString();
 
     public PerformanceTest PerformanceTest
     {

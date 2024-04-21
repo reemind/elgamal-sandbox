@@ -1,7 +1,9 @@
 ﻿@using ElgamalSandbox.Desktop.Services
 @using ElgamalSandbox.Core.Entities
 @using ElgamalSandbox.Core.Enums
+@using ElgamalSandbox.Core.Services
 @inject TaskRunner TaskRunner
+@inject ExceptionHandler ExceptionHandler
 
 <MudDialog >
     <DialogContent>
@@ -20,7 +22,10 @@
         </MudStack>
     </DialogContent>
     <DialogActions>
-        <MudButton Color="Color.Primary" OnClick="@RunAsync" Variant="Variant.Filled">Запустить</MudButton>
+        <MudButton 
+            Color="Color.Primary" 
+            OnClick="() => ExceptionHandler.HandleAsync(RunAsync)" 
+            Variant="Variant.Filled">Запустить</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -38,11 +43,11 @@
     protected override void OnInitialized()
     {
         Values = TaskForRun.Attempts
-            // ReSharper disable once SimplifyLinqExpressionUseMinByAndMaxBy
             .Where(x => x.Type == AttemptTypes.Typical)
+            // ReSharper disable once SimplifyLinqExpressionUseMinByAndMaxBy
             .OrderByDescending(x => x.CreatedAt)
             .FirstOrDefault()
-            ?.Parameters;
+            ?.Parameters!;
 
         if (Values is not null)
             return;
@@ -60,13 +65,11 @@
     private async Task RunAsync()
     {
         _isLoading = true;
-        var attempt = new TaskAttempt()
-        {
-            Code = Code,
-            Parameters = Values,
-            TaskDescription = TaskForRun,
-            Type = AttemptTypes.Typical,
-        };
+        var attempt = new TaskAttempt(
+            Code,
+            Values,
+            AttemptTypes.Typical,
+            TaskForRun);
 
         await TaskRunner.RunAsync(attempt);
         _isLoading = false;

@@ -37,30 +37,67 @@ export const init = (toolbox, playgroundSource, parameters) => {
 
     Blockly.defineBlocksWithJsonArray([
         {
-        "type": "pow_mod",
-        "message0": "%1 ^ %2 %% %3",
-        "args0": [
-            {
-                "type": "input_value",
-                "name": "base",
-                "check": "Number"
-            },
-            {
-                "type": "input_value",
-                "name": "exponent",
-                "check": "Number"
-            },
-            {
-                "type": "input_value",
-                "name": "modulo",
-                "check": "Number"
-            }
-        ],
-        "inputsInline": true,
-        "output": "Number",
-        "colour": 230,
-        "tooltip": "Нахождение степени по модулю",
-        "helpUrl": ""
+            "type": "pow_mod",
+            "message0": "%1 ^ %2 %% %3",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "base",
+                    "check": "Number"
+                },
+                {
+                    "type": "input_value",
+                    "name": "exponent",
+                    "check": "Number"
+                },
+                {
+                    "type": "input_value",
+                    "name": "modulo",
+                    "check": "Number"
+                }
+            ],
+            "inputsInline": true,
+            "output": "Number",
+            "colour": 230,
+            "tooltip": "Нахождение степени по модулю",
+            "helpUrl": ""
+        },
+        {
+            "type": "gcd",
+            "message0": "НОД %1, %2",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "value1",
+                    "check": "Number"
+                },
+                {
+                    "type": "input_value",
+                    "name": "value2",
+                    "check": "Number"
+                }
+            ],
+            "inputsInline": true,
+            "output": "Number",
+            "colour": 230,
+            "tooltip": "Нахождение наибольшего общего делителя",
+            "helpUrl": ""
+        },
+        {
+            "type": "factorint",
+            "message0": "Получить список простых множителей для %1",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "value",
+                    "check": "Number"
+                },
+            ],
+            "inputsInline": true,
+            "output": "Number",
+            "colour": 230,
+            "tooltip": "Нахождение наибольшего общего делителя",
+            "helpUrl": ""
         },
         {
             "type": "dict_create",
@@ -140,6 +177,38 @@ export const init = (toolbox, playgroundSource, parameters) => {
             "helpUrl": ""
         },
         {
+            "type": "dict_keys",
+            "message0": "из словаря %1 вернуть ключи",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "dict",
+                    "check": "dict",
+                    "align": "CENTRE"
+                }
+            ],
+            "output": "Array",
+            "colour": 230,
+            "tooltip": "",
+            "helpUrl": ""
+        },
+        {
+            "type": "dict_values",
+            "message0": "из словаря %1 вернуть значения",
+            "args0": [
+                {
+                    "type": "input_value",
+                    "name": "dict",
+                    "check": "dict",
+                    "align": "CENTRE"
+                }
+            ],
+            "output": "Array",
+            "colour": 230,
+            "tooltip": "",
+            "helpUrl": ""
+        },
+        {
             "type": "isqrt",
             "message0": "целый квадратный корень %1",
             "args0": [
@@ -181,7 +250,7 @@ export const init = (toolbox, playgroundSource, parameters) => {
         var value_dict = generator.valueToCode(block, 'dict', Order.ATOMIC);
         var value_key = generator.valueToCode(block, 'key', Order.ATOMIC);
         
-        var code = `${value_dictvar}[${value_key}]`;
+        var code = `${value_dict}[${value_key}]`;
         return [code, Order.COLLECTION];
     };
 
@@ -201,6 +270,37 @@ export const init = (toolbox, playgroundSource, parameters) => {
         var value_val = generator.valueToCode(block, 'val', Order.ATOMIC);
 
         var code = `int(math.sqrt(${value_val}))`;
+        return [code, Order.FUNCTION_CALL];
+    };
+
+    pythonGenerator.forBlock['gcd'] = function (block, generator) {
+        generator.definitions_['import_math'] = 'import math';
+
+        var value_val1 = generator.valueToCode(block, 'value1', Order.ATOMIC);
+        var value_val2 = generator.valueToCode(block, 'value2', Order.ATOMIC);
+
+        var code = `math.gcd(${value_val1}, ${value_val2})`;
+        return [code, Order.FUNCTION_CALL];
+    };
+
+    pythonGenerator.forBlock['factorint'] = function (block, generator) {
+        generator.definitions_['import_sympy_factorint'] = 'from sympy import factorint';
+
+        var value_val = generator.valueToCode(block, 'value', Order.ATOMIC);
+
+        var code = `factorint(${value_val})`;
+        return [code, Order.FUNCTION_CALL];
+    };
+
+    pythonGenerator.forBlock['dict_keys'] = function (block, generator) {
+        var value_dict = generator.valueToCode(block, 'dict', Order.ATOMIC);
+        var code = `list(${value_dict}.keys())`;
+        return [code, Order.FUNCTION_CALL];
+    };
+
+    pythonGenerator.forBlock['dict_values'] = function (block, generator) {
+        var value_dict = generator.valueToCode(block, 'dict', Order.ATOMIC);
+        var code = `list(${value_dict}.values())`;
         return [code, Order.FUNCTION_CALL];
     };
 

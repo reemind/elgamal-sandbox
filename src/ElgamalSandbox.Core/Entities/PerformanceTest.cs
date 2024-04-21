@@ -8,12 +8,13 @@ public class PerformanceTest : EntityBase
 
     private TaskDescription _taskDescription;
 
-    public PerformanceTest()
+    public PerformanceTest(string prepareScript)
     {
+        PrepareScript = prepareScript ?? throw new ArgumentNullException(nameof(prepareScript));
         Attempts = new List<PerformanceTestAttempt>();
     }
 
-    public long TaskDescriptionId { get; set; }
+    public long TaskDescriptionId { get; private set; }
 
     public TaskDescription TaskDescription
     {
@@ -26,5 +27,6 @@ public class PerformanceTest : EntityBase
     }
 
     public List<PerformanceTestAttempt> Attempts { get; set; }
+
     public string PrepareScript { get; set; }
 }

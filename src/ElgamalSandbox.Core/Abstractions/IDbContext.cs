@@ -12,7 +12,12 @@ namespace ElgamalSandbox.Core.Abstractions
 
         public DbSet<TaskAttempt> TaskAttempts { get; }
 
+        public DbSet<TaskTest> TaskTests { get; set; }
+
+        public DbSet<TaskTestAttemptRelation> TaskTestAttemptRelations { get; set; }
+
         public DbSet<PerformanceTest> PerformanceTests { get; }
+
         public DbSet<PerformanceTestAttempt> PerformanceTestAttempts { get; }
 
         /// <summary>

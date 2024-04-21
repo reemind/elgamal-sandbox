@@ -1,5 +1,6 @@
 ﻿@page "/benchmark"
 @using ElgamalSandbox.Core.Entities
+@using ElgamalSandbox.Desktop.Services
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.Scripting.Utils
 @inject IDbContext DbContext
@@ -87,16 +88,18 @@
         };
 
         _performanceTests = await DbContext.PerformanceTests
-            .Include(x => x.Attempts)
+            .Include(x => x.Attempts
+                .OrderByDescending(x => x.CreatedAt))
             .Include(x => x.TaskDescription)
                 .ThenInclude(x => x.Attempts)
+            .OrderBy(x => x.TaskDescription.Number)
             .ToListAsync();
     }
 
     private void ValueChanged(int index, PerformanceTestAttempt? obj)
     {
         if (obj is not null)
-            _attempts.Add(index,obj);
+            _attempts[index] = obj;
         else
         {
             _attempts.Remove(index);
@@ -116,8 +119,6 @@
         _config1.Data.Labels.Clear();
         _config1.Data.Labels.AddRange(labels.ConvertAll(x => x.ToString()));
         _config1.Data.Datasets.Clear();
-
-        var getColor = () => $"#{Random.Shared.Next(0x1000000):X6}";
 
         foreach (var attempt in _attempts.Values)
         {

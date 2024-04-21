@@ -1,6 +1,5 @@
 ﻿using ElgamalSandbox.Core.Abstractions;
 using ElgamalSandbox.Core.Services;
-using ElgamalSandbox.Desktop.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ElgamalSandbox.Core

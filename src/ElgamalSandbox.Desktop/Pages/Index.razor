@@ -6,7 +6,7 @@
 @inject IDbContext DbContext
 
 <MudPaper Class="pa-4 ma-4 d-flex justify-center">
-<h1>Крипто-песочница</h1>
+    <h1>Виртуальная лабораторная работа</h1>
 </MudPaper>
 
 <MudPaper Class="pa-4 ma-4">
@@ -20,7 +20,6 @@
 
 @code
 {
-    int dataSize = 4;
     private double[] data;
     private string[] labels = ["Решено", "Начато", "Не решено"];
 
@@ -29,7 +28,7 @@
     {
         var stats = DbContext.TaskDescriptions
             .Select(x => new
-            {
+            {   
                 Solved = x.Attempts.Any(x => 
                     x.Type == AttemptTypes.Test
                     && x.IsSucceeded
@@ -39,9 +38,9 @@
 
         data =
         [
-            stats.Count(x => x.Solved),
-            stats.Count(x => x.HasAttempts && !x.Solved),
-            stats.Count(x => !x.HasAttempts)
+            stats.Count(x => x.Solved), // Решено
+            stats.Count(x => x.HasAttempts && !x.Solved), // Начато
+            stats.Count(x => !x.HasAttempts), // Не решено
         ];
 
         return base.OnInitializedAsync();

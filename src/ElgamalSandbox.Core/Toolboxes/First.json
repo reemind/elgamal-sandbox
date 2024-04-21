@@ -203,6 +203,14 @@
         },
         {
           "kind": "block",
+          "type": "gcd"
+        },
+        {
+          "kind": "block",
+          "type": "factorint"
+        },
+        {
+          "kind": "block",
           "type": "isqrt"
         },
         {
@@ -342,6 +350,14 @@
         {
           "kind": "block",
           "type": "dict_set"
+        },
+        {
+          "kind": "block",
+          "type": "dict_keys"
+        },
+        {
+          "kind": "block",
+          "type": "dict_values"
         }
       ]
     },

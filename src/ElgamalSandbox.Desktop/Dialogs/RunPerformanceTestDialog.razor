@@ -1,8 +1,10 @@
 ﻿@using ElgamalSandbox.Desktop.Services
 @using ElgamalSandbox.Core.Entities
 @using System.Diagnostics
+@using ElgamalSandbox.Core.Services
 @inject TaskRunner TaskRunner
 @inject IDbContext DbContext
+@inject ExceptionHandler ExceptionHandler
 
 <MudDialog>
     <DialogContent>
@@ -16,7 +18,8 @@
                         <MudText>Значение: @test.Key</MudText>
                         @if(test.Value.HasValue)
                         {
-                            <MudChip Variant="Variant.Filled" Color="Color.Success">@test.Value</MudChip>
+                            <MudChip Variant="Variant.Filled" Color="Color.Success">@test.Value.Value.Item1</MudChip>
+                            <MudChip Variant="Variant.Filled" Color="Color.Info">Запусков: @test.Value.Value.Item2</MudChip>
                         }
                         else
                         {
@@ -27,15 +30,18 @@
                 @if (_currentTest.HasValue)
                 {
                     <div @key="_currentTest" class="d-flex flex-grow-1 gap-4 align-center">
-                        <MudProgressCircular Color="Color.Primary" Size="Size.Small" Indeterminate="true" />
                         <MudText>Значение: @_currentTest</MudText>
                         <TimerDiv>
                             <MudChip Variant="Variant.Filled" Color="Color.Default">
                                 @($"{context:F1} сек")
                             </MudChip>
                         </TimerDiv>
-
+                        <MudProgressCircular Color="Color.Primary" Size="Size.Small" Indeterminate="true" />
                     </div>
+                }
+                @if (_isCompleted && !results.Any())
+                {
+                    <MudText>Пусто</MudText>
                 }
 
             </MudStack>
@@ -59,7 +65,12 @@
                               Variant="Variant.Outlined"
                               @bind-Value="_endValue"></MudTextField>
             </MudStack>
-            <MudButton Class="mt-2" Variant="Variant.Outlined" OnClick="RunAsync">Запустить</MudButton>
+            <MudButton
+                Class="mt-2"
+                Variant="Variant.Outlined"
+                OnClick="@RunAsync">
+                Запустить
+            </MudButton>
         }
     </DialogContent>
 </MudDialog>
@@ -68,7 +79,7 @@
     private bool _isRunning;
     private bool _isCompleted;
     private CancellationTokenSource _cancellationTokenSource;
-    private Dictionary<long, TimeSpan?> results = new();
+    private Dictionary<long, (TimeSpan?, int)?> results = new();
     private long? _currentTest;
     private Stopwatch _stopwatch = new();
 
@@ -81,8 +92,13 @@
 
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
 
-    private async Task RunAsync(MouseEventArgs obj)
+    private async Task RunAsync()
     {
+        MudDialog.Options.CloseOnEscapeKey = false;
+        MudDialog.Options.CloseOnEscapeKey = false;
+        MudDialog.Options.DisableBackdropClick = true;
+        MudDialog.SetOptions(MudDialog.Options);
+
         _stopwatch.Restart();
         _cancellationTokenSource = new CancellationTokenSource();
         var inputValues = Enumerable.Range(_startValue, _endValue - _startValue + 1)
@@ -97,21 +113,27 @@
         _isRunning = true;
         _currentTest = inputValues.First();
 
-        await TaskRunner.RunPerformanceTestAsync(
-            attempt,
-            (currentInputValue, currentResult, nextValue) =>
-            {
-                results.Add(currentInputValue, currentResult);
-                _currentTest = nextValue;
-                StateHasChanged();
-                _stopwatch.Restart();
-            },
-            _cancellationTokenSource.Token);
+        await ExceptionHandler.HandleAsync(async () =>
+        {
+            await TaskRunner.RunPerformanceTestAsync(
+                attempt,
+                (currentInputValue, currentResult, nextValue, runs) =>
+                {
+                    results.Add(
+                        currentInputValue, 
+                        currentResult.HasValue ? (currentResult, runs) : null);
+                    _currentTest = nextValue;
+                    StateHasChanged();
+                    _stopwatch.Restart();
+                },
+                _cancellationTokenSource.Token);
 
-        DbContext.PerformanceTestAttempts.Add(attempt);
-        await DbContext.SaveChangesAsync();
+            DbContext.PerformanceTestAttempts.Add(attempt);
+            await DbContext.SaveChangesAsync();
+        });
+
+        
         StateHasChanged();
-
         _isRunning = false;
         _isCompleted = true;
         _currentTest = null;
@@ -121,5 +143,4 @@
     {
         await _cancellationTokenSource.CancelAsync();
     }
-
 }

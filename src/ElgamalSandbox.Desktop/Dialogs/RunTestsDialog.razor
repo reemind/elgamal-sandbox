@@ -1,9 +1,10 @@
 ﻿@using ElgamalSandbox.Desktop.Services
 @using ElgamalSandbox.Core.Entities
 @using ElgamalSandbox.Core.Enums
+@using ElgamalSandbox.Core.Services
 @inject TaskRunner TaskRunner
 
-<MudDialog >
+<MudDialog>
     <DialogContent>
         <h3>Тестируем...</h3>
         <MudOverlay DarkBackground="true" Absolute="true">
@@ -25,13 +26,11 @@
     {
         if (firstRender)
         {
-            var attempt = new TaskAttempt()
-            {
-                Code = Code,
-                Parameters = Values,
-                TaskDescription = TaskForRun,
-                Type = AttemptTypes.Test,
-            };
+            var attempt = new TaskAttempt(
+                Code,
+                Values,
+                AttemptTypes.Test,
+                TaskForRun);
 
             await TaskRunner.RunAsync(attempt);
             MudDialog.Close(attempt);

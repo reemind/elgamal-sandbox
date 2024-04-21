@@ -1,6 +1,7 @@
 ﻿@page "/tasks"
 @using ElgamalSandbox.Core.Entities
 @using ElgamalSandbox.Core.Abstractions
+@using ElgamalSandbox.Core.Extensions
 @using Microsoft.EntityFrameworkCore
 @inject IDbContext DbContext
 @inject NavigationManager NavigationManager
@@ -14,14 +15,22 @@
         <MudTh>Статус</MudTh>
     </HeaderContent>
     <RowTemplate>
-        <MudTd DataLabel="Номер">@context.Number</MudTd>
+        <MudTd DataLabel="Номер">
+            <MudStack Row="true" AlignItems="AlignItems.Center">
+                @context.Number
+                @if (context.PerformanceTests.Any())
+                {
+                    <MudIcon Icon="@Icons.Material.Outlined.Timer"></MudIcon>
+                }
+            </MudStack>
+        </MudTd>
         <MudTd DataLabel="Название">
             @context.Name
         </MudTd>
         <MudTd DataLabel="Кол-во попыток">@context.Attempts.Count</MudTd>
         <MudTd DataLabel="Последняя попытка">
             @(context.Attempts.Any()
-                ? $"{context.Attempts.MaxBy(x => x.CreatedAt).CreatedAt.ToLocalTime():dd.MM.yyyy hh:mm}"
+                ? context.Attempts.Max(x => x.CreatedAt).ToLocalString()
                 :"")
         </MudTd>
         <MudTd DataLabel="Статус">
@@ -39,6 +48,7 @@
         Elements = await DbContext.TaskDescriptions
             .Include(x => x.Attempts)
                 .ThenInclude(x => x.Tests)
+            .Include(x => x.PerformanceTests)
             .ToListAsync();
     }
 

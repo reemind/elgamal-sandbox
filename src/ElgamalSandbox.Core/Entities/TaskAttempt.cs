@@ -10,22 +10,35 @@ public class TaskAttempt : EntityBase
 
     private TaskDescription _taskDescription;
 
-    public TaskAttempt()
+    public TaskAttempt(
+        string code,
+        Dictionary<string, string> parameters,
+        AttemptTypes type,
+        TaskDescription taskDescription)
     {
+        Code = code ?? throw new ArgumentNullException(nameof(code));
+        Parameters = parameters;
+        Type = type;
+        TaskDescription = taskDescription;
+
         Tests = new List<TaskTestAttemptRelation>();
+    }
+
+    private TaskAttempt()
+    {
     }
 
     public string Code { get; set; }
 
     public JsonObject? Playground { get; set; }
 
-    public Dictionary<string, string>? Parameters { get; set; }
+    public Dictionary<string, string> Parameters { get; set; }
 
     public AttemptTypes Type { get; set; }
 
     public bool IsSucceeded { get; set; }
 
-    public long TaskDescriptionId { get; set; }
+    public long TaskDescriptionId { get; private set; }
 
     public string Result { get; set; }
 
@@ -43,5 +56,6 @@ public class TaskAttempt : EntityBase
 
     public bool IsPassedTests
         => Type == AttemptTypes.Test
+           && Tests.Any()
            && Tests.TrueForAll(x => x.Result == TestResult.Success);
 }

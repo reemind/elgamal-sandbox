@@ -15,8 +15,21 @@
         <MudTh>Инфо</MudTh>
     </HeaderContent>
     <RowTemplate>
-        <MudTd DataLabel="Время">@context.RunDate</MudTd>
-        <MudTd DataLabel="Тип">@context.Type</MudTd>
+        <MudTd DataLabel="Время">@context.RunDate.ToLocalString()}"</MudTd>
+        <MudTd DataLabel="Тип">
+            @switch (context.Type)
+            {
+                case AttemptTypes.Typical:
+                    <MudText>Ручной запуск</MudText>
+                    break;
+                case AttemptTypes.Test:
+                    <MudText>Тест</MudText>
+                    break;  
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        </MudTd>
+
         <MudTd DataLabel="Тестов пройдено">
             @context.TestPassed
         </MudTd>

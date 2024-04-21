@@ -1,4 +1,5 @@
-﻿using ElgamalSandbox.Core.Exceptions;
+﻿using ElgamalSandbox.Core.Enums;
+using ElgamalSandbox.Core.Exceptions;
 
 namespace ElgamalSandbox.Core.Entities;
 
@@ -7,9 +8,9 @@ public class TaskTestAttemptRelation
     private TaskTest _test;
     private TaskAttempt _attempt;
 
-    public long TestId { get; set; }
+    public long TestId { get; private set; }
 
-    public long AttemptId { get; set; }
+    public long AttemptId { get; private set; }
 
     public TaskTest Test
     {
@@ -32,11 +33,4 @@ public class TaskTestAttemptRelation
     }
 
     public TestResult Result { get; set; }
-}
-
-public enum TestResult
-{
-    Success,
-    Failure,
-    Skipped
 }
