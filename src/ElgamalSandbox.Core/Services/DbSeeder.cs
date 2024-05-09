@@ -47,7 +47,7 @@ public class DbSeeder : IDbSeeder
         // 1
         await InsertTaskAsync(
             number: number,
-            name: "Реализовать дискретный логарифм по модулю в блочном виде",
+            name: "Реализовать дискретное возведение в степень по модулю в блочном виде",
             inputVars: ["x", "a", "n"],
             outputVars: ["y"],
             "First",
@@ -58,20 +58,20 @@ public class DbSeeder : IDbSeeder
                 new TestModel(
                     InputVars: new
                     {
-                        x = 1106,
-                        a = 456456,
-                        n = 43234,
+                        x = 1030,
+                        a = 5,
+                        n = 2017,
                     },
                     OutputVars: new
                     {
-                        x = 6642,
+                        y = 3,
                     }),
             ]);
 
         // 2
         await InsertTaskAsync(
             number: number,
-            name: "Разработать блочную программу для генерации простого числа заданной длины",
+            name: "Разработать блочную программу проверки числа на простоту",
             inputVars: ["n"],
             outputVars: ["is_prime"],
             "First",
@@ -82,46 +82,20 @@ public class DbSeeder : IDbSeeder
                 new TestModel(
                     InputVars: new
                     {
-                        y = 1,
-                        a = 1,
-                        n = 1,
+                        n = 53,
                     },
                     OutputVars: new
                     {
-                        x = 8,
+                        is_prime = true,
                     }),
             ]);
 
         // 3
         await InsertTaskAsync(
             number: number,
-            name: "Разработать блочную программу для генерации ключей",
-            inputVars: ["y", "a", "n"],
-            outputVars: ["x"],
-            "First",
-            "Second",
-            testIdCounter: taskTestIdCounter,
-            performanceTestIdCounter: performanceTestIdCounter,
-            tests: [
-                new TestModel(
-                    InputVars: new
-                    {
-                        y = 1,
-                        a = 1,
-                        n = 1,
-                    },
-                    OutputVars: new
-                    {
-                        x = 8,
-                    }),
-            ]);
-
-        // 4
-        await InsertTaskAsync(
-            number: number,
-            name: "Реализация шифрования ElGamal с использованием ключей",
-            inputVars: ["y", "a", "n"],
-            outputVars: ["x"],
+            name: "Реализация шифрования Эль-Гамаля с использованием ключей",
+            inputVars: ["y", "a", "m", "k", "n"],
+            outputVars: ["a", "b"],
             "First",
             "Third",
             testIdCounter: taskTestIdCounter,
@@ -130,13 +104,41 @@ public class DbSeeder : IDbSeeder
                 new TestModel(
                     InputVars: new
                     {
-                        y = 1,
-                        a = 1,
-                        n = 1,
+                        y = 3,
+                        a = 2,
+                        m = 5,
+                        k = 9,
+                        n = 11,
                     },
                     OutputVars: new
                     {
+                        a = 6,
+                        b = 9
+                    }),
+            ]);
+
+        // 4
+        await InsertTaskAsync(
+            number: number,
+            name: "Реализация дешифрования Эль-Гамаля с использованием ключей",
+            inputVars: ["x", "n", "a", "b"],
+            outputVars: ["m"],
+            "First",
+            "Fourth",
+            testIdCounter: taskTestIdCounter,
+            performanceTestIdCounter: performanceTestIdCounter,
+            tests: [
+                new TestModel(
+                    InputVars: new
+                    {
                         x = 8,
+                        n = 11,
+                        a = 6,
+                        b = 9
+                    },
+                    OutputVars: new
+                    {
+                        m = 5,
                     }),
             ]);
 
@@ -147,7 +149,7 @@ public class DbSeeder : IDbSeeder
             inputVars: ["y", "a", "n"],
             outputVars: ["x"],
             "First",
-            "Fourth",
+            "Fifth",
             testIdCounter: taskTestIdCounter,
             performanceTestIdCounter: performanceTestIdCounter,
             tests: [
@@ -234,7 +236,7 @@ public class DbSeeder : IDbSeeder
             inputVars: ["y", "a", "n"],
             outputVars: ["x"],
             "First",
-            description: "Fifth",
+            description: "Sixth",
             testIdCounter: taskTestIdCounter,
             performanceTestIdCounter: performanceTestIdCounter,
             tests: [

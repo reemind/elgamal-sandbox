@@ -8,11 +8,13 @@
 
 	<ItemGroup>
 		<None Remove="Descriptions\**\*" />
+		<None Remove="Toolboxes\All.json" />
 		<None Remove="Toolboxes\First.json" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<EmbeddedResource Include="Descriptions\**\*" />
+		<EmbeddedResource Include="Toolboxes\All.json" />
 		<EmbeddedResource Include="Toolboxes\First.json" />
 	</ItemGroup>
 
