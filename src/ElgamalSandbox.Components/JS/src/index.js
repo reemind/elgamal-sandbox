@@ -109,7 +109,7 @@ export const init = (toolbox, playgroundSource, parameters) => {
         },
         {
             "type": "dict_set",
-            "message0": "в списке %1 установить по ключу %2 значение %3",
+            "message0": "в словаре %1 установить по ключу %2 значение %3",
             "args0": [
                 {
                     "type": "input_value",

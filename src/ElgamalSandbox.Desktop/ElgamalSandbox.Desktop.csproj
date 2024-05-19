@@ -38,6 +38,7 @@
         <GenerateTestArtifacts>True</GenerateTestArtifacts>
         <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
         <PackageCertificateThumbprint>5EFAFB410AEBF904C5D1AD6743BF95F85AFB6716</PackageCertificateThumbprint>
+        <DefaultLanguage>ru-ru</DefaultLanguage>
     </PropertyGroup>
 
     <ItemGroup>

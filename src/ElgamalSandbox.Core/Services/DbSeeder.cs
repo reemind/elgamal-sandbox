@@ -142,6 +142,32 @@ public class DbSeeder : IDbSeeder
                     }),
             ]);
 
+        List<TestModel> logModTests =
+        [
+            new TestModel(
+                InputVars: new
+                {
+                    y = 6642,
+                    a = 456456,
+                    n = 43234,
+                },
+                OutputVars: new
+                {
+                    x = 1106,
+                }),
+            //new TestModel(
+            //    InputVars: new
+            //    {
+            //        y = 29379,
+            //        a = 797,
+            //        n = 34_567,
+            //    },
+            //    OutputVars: new
+            //    {
+            //        x = 555, // 11634
+            //    }),
+        ];
+
         // 5
         await InsertTaskAsync(
             number: number,
@@ -152,79 +178,7 @@ public class DbSeeder : IDbSeeder
             "Fifth",
             testIdCounter: taskTestIdCounter,
             performanceTestIdCounter: performanceTestIdCounter,
-            tests: [
-                new TestModel(
-                    InputVars: new
-                    {
-                        y = 6642,
-                        a = 456456,
-                        n = 43234,
-                    },
-                    OutputVars: new
-                    {
-                        x = 1106,
-                    }),
-                new TestModel(
-                    InputVars: new
-                    {
-                        y = 863,
-                        a = 789012,
-                        n = 34567,
-                    },
-                    OutputVars: new
-                    {
-                        x = 34566,
-                    }),
-
-                new TestModel(
-                    InputVars: new
-                    {
-                        y = 987654,
-                        a = 567890,
-                        n = 12345,
-                    },
-                    OutputVars: new
-                    {
-                        x = 12344,
-                    }),
-
-                new TestModel(
-                    InputVars: new
-                    {
-                        y = 876543,
-                        a = 345678,
-                        n = 23456,
-                    },
-                    OutputVars: new
-                    {
-                        x = 23455,
-                    }),
-
-                new TestModel(
-                    InputVars: new
-                    {
-                        y = 654321,
-                        a = 210987,
-                        n = 54321,
-                    },
-                    OutputVars: new
-                    {
-                        x = 54320,
-                    }),
-
-                new TestModel(
-                    InputVars: new
-                    {
-                        y = 543210,
-                        a = 109876,
-                        n = 65432,
-                    },
-                    OutputVars: new
-                    {
-                        x = 65431,
-                    })
-
-            ],
+            tests: logModTests,
             performanceTests: [
                 new PerformanceTest(prepareScript)
                 ]);
@@ -239,19 +193,7 @@ public class DbSeeder : IDbSeeder
             description: "Sixth",
             testIdCounter: taskTestIdCounter,
             performanceTestIdCounter: performanceTestIdCounter,
-            tests: [
-                new TestModel(
-                    InputVars: new
-                    {
-                        y = 3,
-                        a = 5,
-                        n = 2017,
-                    },
-                    OutputVars: new
-                    {
-                        x = 1030,
-                    }),
-            ],
+            tests: logModTests,
             performanceTests: [
                 new PerformanceTest(prepareScript),
             ]);
@@ -267,19 +209,7 @@ public class DbSeeder : IDbSeeder
             description: "Sixth",
             testIdCounter: taskTestIdCounter,
             performanceTestIdCounter: performanceTestIdCounter,
-            tests: [
-                new TestModel(
-                    InputVars: new
-                    {
-                        y = 3,
-                        a = 5,
-                        n = 2017,
-                    },
-                    OutputVars: new
-                    {
-                        x = 1030,
-                    }),
-            ],
+            tests: logModTests,
             performanceTests: [
                 new PerformanceTest(prepareScript),
             ]);
@@ -316,7 +246,7 @@ public class DbSeeder : IDbSeeder
         await _dbContext.TaskDescriptions.MutateAsync(task);
 
         await _dbContext.TaskTests.MutateAsync(
-            tests.Select(x => new TaskTest()
+            tests.Select(x => new TaskTest
             {
                 Id = testIdCounter,
                 Task = task,
