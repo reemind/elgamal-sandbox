@@ -1,4 +1,5 @@
-﻿using ElgamalSandbox.Core;
+﻿using CommunityToolkit.Maui;
+using ElgamalSandbox.Core;
 using ElgamalSandbox.Data.SqLite;
 using ElgamalSandbox.Desktop.Services;
 using Microsoft.Extensions.Logging;
@@ -31,6 +32,9 @@ namespace ElgamalSandbox.Desktop
             builder.Services.AddMudServices();
             builder.Services.AddMudMarkdownServices();
             builder.Services.AddScoped<ExceptionHandler>();
+            builder.Services.AddScoped<BackupService>();
+
+            builder.UseMauiCommunityToolkit();
 
             if (isDevelopment)
             {

@@ -57,13 +57,13 @@
             .Include(x => x.Attempts)
                 .ThenInclude(x => x.Tests)
             .Include(x => x.Tests)
-            .FirstOrDefaultAsync(x => x.Id.ToString() == TaskId.ToString())
+            .FirstOrDefaultAsync(x => x.Id == TaskId)
             ?? throw new EntityNotFoundException<TaskDescription>(TaskId);
 
         _items =
         [
-            new BreadcrumbItem("Tasks", href: "/tasks"),
-            new BreadcrumbItem(_task!.Name, href: "#", disabled: true)
+            new BreadcrumbItem("Задачи", href: "/tasks"),
+            new BreadcrumbItem(_task.Name, href: "#", disabled: true)
         ];
     }
 
@@ -109,10 +109,6 @@
                     {nameof(TaskResultDialog.TaskAttempt), result}
                 }
             );
-        }
-        else
-        {
-            
         }
     }
 

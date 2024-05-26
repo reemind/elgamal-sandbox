@@ -41,16 +41,14 @@ public class DbSeeder : IDbSeeder
 
                             # Генерация ключей с заданной длиной
                             (n, a, y), _ = generate_key_pair(input_value)
-
                             """;
 
         // 1
         await InsertTaskAsync(
             number: number,
             name: "Реализовать дискретное возведение в степень по модулю в блочном виде",
-            inputVars: ["x", "a", "n"],
-            outputVars: ["y"],
-            "First",
+            inputVars: ["a", "x", "p"],
+            outputVars: ["b"],
             "First",
             testIdCounter: taskTestIdCounter,
             performanceTestIdCounter: performanceTestIdCounter,
@@ -60,11 +58,11 @@ public class DbSeeder : IDbSeeder
                     {
                         x = 1030,
                         a = 5,
-                        n = 2017,
+                        p = 2017,
                     },
                     OutputVars: new
                     {
-                        y = 3,
+                        b = 3,
                     }),
             ]);
 
@@ -75,7 +73,6 @@ public class DbSeeder : IDbSeeder
             inputVars: ["n"],
             outputVars: ["is_prime"],
             "First",
-            "Second",
             testIdCounter: taskTestIdCounter,
             performanceTestIdCounter: performanceTestIdCounter,
             tests: [
@@ -88,16 +85,24 @@ public class DbSeeder : IDbSeeder
                     {
                         is_prime = true,
                     }),
+                new TestModel(
+                    InputVars: new
+                    {
+                        n = 81,
+                    },
+                    OutputVars: new
+                    {
+                        is_prime = false,
+                    }),
             ]);
 
         // 3
         await InsertTaskAsync(
             number: number,
             name: "Реализация шифрования Эль-Гамаля с использованием ключей",
-            inputVars: ["y", "a", "m", "k", "n"],
+            inputVars: ["y", "g", "m", "k", "p"],
             outputVars: ["a", "b"],
             "First",
-            "Third",
             testIdCounter: taskTestIdCounter,
             performanceTestIdCounter: performanceTestIdCounter,
             tests: [
@@ -105,10 +110,10 @@ public class DbSeeder : IDbSeeder
                     InputVars: new
                     {
                         y = 3,
-                        a = 2,
+                        g = 2,
                         m = 5,
                         k = 9,
-                        n = 11,
+                        p = 11,
                     },
                     OutputVars: new
                     {
@@ -121,10 +126,9 @@ public class DbSeeder : IDbSeeder
         await InsertTaskAsync(
             number: number,
             name: "Реализация дешифрования Эль-Гамаля с использованием ключей",
-            inputVars: ["x", "n", "a", "b"],
+            inputVars: ["x", "p", "a", "b"],
             outputVars: ["m"],
             "First",
-            "Fourth",
             testIdCounter: taskTestIdCounter,
             performanceTestIdCounter: performanceTestIdCounter,
             tests: [
@@ -132,7 +136,7 @@ public class DbSeeder : IDbSeeder
                     InputVars: new
                     {
                         x = 8,
-                        n = 11,
+                        p = 11,
                         a = 6,
                         b = 9
                     },
@@ -147,35 +151,23 @@ public class DbSeeder : IDbSeeder
             new TestModel(
                 InputVars: new
                 {
-                    y = 6642,
+                    b = 6642,
                     a = 456456,
-                    n = 43234,
+                    p = 43234,
                 },
                 OutputVars: new
                 {
                     x = 1106,
                 }),
-            //new TestModel(
-            //    InputVars: new
-            //    {
-            //        y = 29379,
-            //        a = 797,
-            //        n = 34_567,
-            //    },
-            //    OutputVars: new
-            //    {
-            //        x = 555, // 11634
-            //    }),
         ];
 
         // 5
         await InsertTaskAsync(
             number: number,
             name: "Реализация дискретного логарифма по модулю методом грубой силы в блочном виде",
-            inputVars: ["y", "a", "n"],
+            inputVars: ["b", "a", "p"],
             outputVars: ["x"],
             "First",
-            "Fifth",
             testIdCounter: taskTestIdCounter,
             performanceTestIdCounter: performanceTestIdCounter,
             tests: logModTests,
@@ -187,10 +179,9 @@ public class DbSeeder : IDbSeeder
         await InsertTaskAsync(
             number: number,
             name: "Реализация дискретного логарифма по модулю с использованием алгоритма \"Шаг младенца - шаг гиганта\"",
-            inputVars: ["y", "a", "n"],
+            inputVars: ["b", "a", "p"],
             outputVars: ["x"],
             "First",
-            description: "Sixth",
             testIdCounter: taskTestIdCounter,
             performanceTestIdCounter: performanceTestIdCounter,
             tests: logModTests,
@@ -203,10 +194,9 @@ public class DbSeeder : IDbSeeder
         await InsertTaskAsync(
             number: number,
             name: "Разработать блочную программу для нахождения дискретного логарифма по модулю с использованием алгоритма Полига-Хеллмана",
-            inputVars: ["y", "a", "n"],
+            inputVars: ["b", "a", "p"],
             outputVars: ["x"],
             "First",
-            description: "Sixth",
             testIdCounter: taskTestIdCounter,
             performanceTestIdCounter: performanceTestIdCounter,
             tests: logModTests,
@@ -223,7 +213,6 @@ public class DbSeeder : IDbSeeder
         string[] inputVars,
         string[] outputVars,
         string toolboxFileName,
-        string description,
         AutoCounter<long> testIdCounter,
         AutoCounter<long> performanceTestIdCounter,
         List<TestModel> tests,
@@ -235,7 +224,7 @@ public class DbSeeder : IDbSeeder
             Number = number,
             Name = name,
             Description = await new StreamReader(
-                    GetStream($"ElgamalSandbox.Core.Descriptions.{description}.md"))
+                    GetStream($"ElgamalSandbox.Core.Descriptions.{number}.md"))
                 .ReadToEndAsync(),
             InputVars = inputVars,
             OutputVars = outputVars,

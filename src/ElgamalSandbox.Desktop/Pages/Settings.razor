@@ -1,0 +1,56 @@
+﻿@page "/settings"
+@using ElgamalSandbox.Desktop.Services
+@inject BackupService BackupService
+
+<MudPaper Class="pa-4 ma-4">
+    <MudContainer>
+        <h1>Экспорт</h1>
+        <MudButton 
+            Variant="Variant.Filled"
+            Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.CloudDownload"
+            OnClick="@ExportAsync">Экспортировать</MudButton>
+    </MudContainer>
+</MudPaper>
+
+<MudPaper Class="pa-4 ma-4 d-flex flex-column">
+    <MudContainer>
+        <h1>Импорт</h1>
+        <MudFileUpload T="IBrowserFile" Accept=".backup" FilesChanged="UploadFile">
+            <ButtonTemplate>
+                <MudButton HtmlTag="label"
+                           Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.CloudUpload"
+                           for="@context.Id">
+                    Импортировать
+                </MudButton>
+            </ButtonTemplate>
+        </MudFileUpload>
+    </MudContainer>
+</MudPaper>
+
+<MudPaper Class="pa-4 ma-4">
+    <MudContainer>
+        <h1>Сброс</h1>
+        <MudButton 
+            Variant="Variant.Filled"
+            Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.DeleteForever"
+            OnClick="@ResetAsync">Сбросить</MudButton>
+    </MudContainer>
+</MudPaper>
+
+@code {
+    private async Task UploadFile(IBrowserFile file)
+    {
+        await BackupService.ImportAsync(file.OpenReadStream());
+    }
+
+    private async Task ExportAsync(MouseEventArgs obj)
+        => await BackupService.ExportAsync();
+
+    private async Task ResetAsync(MouseEventArgs obj)
+        => await BackupService.ResetAsync();
+
+}

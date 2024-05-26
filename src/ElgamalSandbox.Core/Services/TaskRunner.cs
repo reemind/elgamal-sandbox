@@ -151,7 +151,7 @@ namespace ElgamalSandbox.Core.Services
 
                 var stopWatch = new Stopwatch();
                 var elapsedSum = TimeSpan.Zero;
-                int runAttempt = 0;
+                var runAttempt = 0;
 
                 try
                 {

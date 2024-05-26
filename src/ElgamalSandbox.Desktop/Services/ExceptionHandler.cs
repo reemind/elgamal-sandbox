@@ -32,7 +32,11 @@ namespace ElgamalSandbox.Desktop.Services
             return default;
         }
 
-        public async Task HandleAsync(Func<Task> func)
+        public async Task HandleAsync(
+            Func<Task> func,
+            Action? catchFunc = null,
+            Action? finallyFunc = null,
+            bool catchAll = false)
         {
             try
             {
@@ -42,6 +46,22 @@ namespace ElgamalSandbox.Desktop.Services
             {
                 _logger.LogWarning(e, "Ошибка");
                 _snackBar.Add(e.Message, Severity.Error);
+
+                catchFunc?.Invoke();
+            }
+            catch (Exception e)
+            {
+                if (!catchAll)
+                    throw;
+
+                _logger.LogWarning(e, "Ошибка");
+                _snackBar.Add("Ошибка", Severity.Error);
+
+                catchFunc?.Invoke();
+            }
+            finally
+            {
+                finallyFunc?.Invoke();
             }
         }
     }
